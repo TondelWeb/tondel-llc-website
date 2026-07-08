@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet" />
+  <!-- Fonts for the interactive build-scene + gallery sections below -->
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -244,6 +246,12 @@
     }
     h2 em { font-style: normal; color: var(--gold); }
     .section-intro { font-size: 1.05rem; color: #999; font-weight: 300; max-width: 540px; margin-top: 1.2rem; line-height: 1.75; }
+
+    /* ── FEATURE SECTIONS (gallery + interactive build scenes) ── */
+    .feature-intro { padding-bottom: 3rem; }
+    #gallery { background: var(--black); }
+    #gallery .gallery-wrap { margin-top: 4rem; }
+    #concrete-feature, #fence-feature { background: var(--dark); }
 
     /* ── SERVICES ── */
     #services { background: var(--black); }
@@ -541,6 +549,7 @@
       .nav-links, .nav-cta .btn-call { display: none; }
       .hamburger { display: flex; }
       section { padding: 5rem 5vw; }
+      .feature-intro { padding-bottom: 2rem; }
       .form-row { grid-template-columns: 1fr; }
       .footer-grid { grid-template-columns: 1fr; }
       .cta-band { flex-direction: column; }
@@ -722,6 +731,1576 @@
 </section>
 
 
+<!-- PROJECT GALLERY (before / during / after) -->
+<section id="gallery">
+  <div class="section-tag">Proof</div>
+  <h2>Before &amp; After <em>— Our Work</em></h2>
+  <p class="section-intro">Real Tondel LLC jobs, start to finish. Drag the slider or tap a stage to see the transformation.</p>
+  <div class="gallery-wrap reveal">
+<div id="tondel-slider">
+  <style>
+    /* ── tokens ─────────────────────────────────────────────────────── */
+    #tondel-slider {
+      --accent:      #FF6A1A;   /* ← swap the accent color here */
+      --accent-soft: rgba(255, 106, 26, .28);
+      --card:        #1C1F27;   /* charcoal card */
+      --card-edge:   #262A35;
+      --ink:         #EDEFF3;   /* near-white text */
+      --ink-dim:     #9AA1AE;   /* concrete grey */
+      --ink-faint:   #6B7280;
+      --track:       #30343F;   /* slider track base */
+      --font-display: 'Anton', 'Arial Narrow', sans-serif;
+      --font-body:    'Inter', system-ui, sans-serif;
+
+      font-family: var(--font-body);
+      color: var(--ink);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));  /* 2 per row */
+      gap: 28px;
+      align-items: start;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── card: HORIZONTAL — photo pane left (kept at its true aspect,
+         so nothing is cropped/stretched), title + controls on the right ── */
+    #tondel-slider .ts-card {
+      background: var(--card);
+      border: 1px solid var(--card-edge);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: row;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    #tondel-slider .ts-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    #tondel-slider .ts-body .ts-foot { margin-top: auto; }
+
+    /* below ~900px: stack back to one column + vertical cards */
+    @media (max-width: 900px) {
+      #tondel-slider { grid-template-columns: 1fr; }
+      #tondel-slider .ts-card { flex-direction: column; }
+      #tondel-slider .ts-viewport { width: 100% !important; }
+    }
+
+    #tondel-slider .ts-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px 12px;
+    }
+    #tondel-slider .ts-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(20px, 2.2vw, 26px);
+      font-weight: 400;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+      line-height: 1.05;
+    }
+    #tondel-slider .ts-tag {
+      flex: none;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent-soft);
+      padding: 4px 8px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    /* ── photo viewport (aspect set per-project inline) ─────────────── */
+    #tondel-slider .ts-viewport {
+      position: relative;
+      flex: none;
+      width: 56%;                       /* photo pane = left half-ish of card */
+      overflow: hidden;
+      background: #12141a;              /* fills while images load */
+      /* aspect-ratio is set per project from the JOBS data, so the box
+         matches the photos' own proportions — no shrink, no stretch */
+    }
+    #tondel-slider .ts-viewport img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      will-change: opacity, transform;
+      transform: scale(1.06);
+      pointer-events: none;
+      user-select: none;
+    }
+    #tondel-slider .ts-stagebadge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-family: var(--font-display);
+      font-size: 15px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #fff;
+      background: rgba(18, 20, 26, .78);
+      border-left: 3px solid var(--accent);
+      padding: 6px 12px 5px;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+
+    /* ── footer: caption, chips, slider ─────────────────────────────── */
+    #tondel-slider .ts-foot { padding: 14px 18px 20px; }
+
+    #tondel-slider .ts-caption {
+      min-height: 2.4em;               /* reserve space → no layout shift */
+      margin: 0 0 12px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      line-height: 1.6;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #tondel-slider .ts-chips {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    #tondel-slider .ts-chip {
+      appearance: none;
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      background: transparent;
+      border: 1px solid var(--track);
+      border-radius: 3px;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: color .15s, border-color .15s, background .15s;
+    }
+    #tondel-slider .ts-chip:hover { color: var(--ink); border-color: var(--ink-faint); }
+    #tondel-slider .ts-chip[aria-pressed="true"] {
+      color: #0f1116;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    #tondel-slider .ts-chip:focus-visible,
+    #tondel-slider .ts-range:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    /* ── the tactile slider ─────────────────────────────────────────── */
+    #tondel-slider .ts-range {
+      position: relative;
+      height: 40px;                     /* generous touch target */
+      cursor: grab;
+      touch-action: none;               /* we handle drag ourselves */
+      border-radius: 6px;
+    }
+    #tondel-slider .ts-range.ts-grabbing { cursor: grabbing; }
+    #tondel-slider .ts-track {
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      height: 6px;
+      transform: translateY(-50%);
+      background: var(--track);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    #tondel-slider .ts-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 0%;
+      background: var(--accent);
+      border-radius: inherit;
+    }
+    #tondel-slider .ts-tick {
+      position: absolute;
+      top: 50%;
+      width: 2px; height: 14px;
+      transform: translate(-50%, -50%);
+      background: var(--ink-faint);
+      border-radius: 1px;
+      pointer-events: none;
+    }
+    #tondel-slider .ts-knob {
+      position: absolute;
+      top: 50%;
+      width: 26px; height: 26px;
+      transform: translate(-50%, -50%);
+      background: #14161c;
+      border: 4px solid var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.5);
+      pointer-events: none;
+    }
+    #tondel-slider .ts-range.ts-grabbing .ts-knob {
+      box-shadow: 0 0 0 6px var(--accent-soft), 0 2px 8px rgba(0,0,0,.5);
+    }
+
+    /* reduced motion: crossfade/zoom handled in JS; kill transitions here */
+    @media (prefers-reduced-motion: reduce) {
+      #tondel-slider .ts-chip { transition: none; }
+      #tondel-slider .ts-viewport img { transform: none !important; }
+    }
+  </style>
+
+  <!-- cards are rendered by JS from the JOBS array -->
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ══ EDIT ME: your projects. Copy a block to add one. ══════════════
+       aspect  = viewport ratio, "w/h" (portrait "3/4", landscape "3/2")
+       stages  = 2 or 3 entries, in order (Before[, During], After)      */
+    var JOBS = [
+      {
+        title: 'Driveway Replacement',
+        tag: 'Concrete',
+        aspect: '3/4',
+        stages: [
+          { label: 'Before', caption: 'Cracked, failing slab',           src: 'images/placeholder-concrete-before.svg' },
+          { label: 'During', caption: 'New gravel base + forms set',     src: 'images/placeholder-concrete-during.svg' },
+          { label: 'After',  caption: 'Finished broom-finish concrete',  src: 'images/placeholder-concrete-after.svg' }
+        ]
+      },
+      {
+        title: 'Driveway Replacement',
+        tag: 'Concrete',
+        aspect: '3/4',
+        stages: [
+          { label: 'Before', caption: 'Old cracked driveway',            src: 'images/placeholder-concrete-before.svg' },
+          { label: 'During', caption: 'Graded base, formed & ready',     src: 'images/placeholder-concrete-during.svg' },
+          { label: 'After',  caption: 'Fresh poured & jointed',          src: 'images/placeholder-concrete-after.svg' }
+        ]
+      },
+      {
+        title: 'Privacy Fence',
+        tag: 'Fencing',
+        aspect: '3/2',
+        stages: [
+          { label: 'Before', caption: 'Failing old fence line',          src: 'images/placeholder-fence-before.svg' },
+          { label: 'During', caption: 'Posts set, panels going up',      src: 'images/placeholder-fence-during.svg' },
+          { label: 'After',  caption: 'New cedar privacy fence',         src: 'images/placeholder-fence-after.svg' }
+        ]
+      },
+      { /* 2-stage job: just Before + After — slider adapts automatically */
+        title: 'Privacy Fence',
+        tag: 'Fencing',
+        aspect: '3/2',
+        stages: [
+          { label: 'Before', caption: 'Worn, leaning fence',             src: 'images/placeholder-fence-before.svg' },
+          { label: 'After',  caption: 'New privacy fence installed',     src: 'images/placeholder-fence-after.svg' }
+        ]
+      }
+    ];
+    /* Row order: cards fill left→right, 2 per row.
+       [0] Concrete   [1] Concrete     ← row 1
+       [2] Fence      [3] Fence        ← row 2                          */
+    /* ═══════════════════════════════════════════════════════════════ */
+
+    var root = document.getElementById('tondel-slider');
+    if (!root) return;
+
+    var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function reduced() { return mqReduce.matches; }
+
+    function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+    // easeOutCubic
+    function ease(x) { return 1 - Math.pow(1 - x, 3); }
+
+    JOBS.forEach(function (job, jobIndex) {
+      buildCard(job, jobIndex);
+    });
+
+    function buildCard(job, jobIndex) {
+      var n = job.stages.length;           // 2 or 3, detected from data
+      var max = n - 1;
+
+      var card = document.createElement('article');
+      card.className = 'ts-card';
+
+      /* header */
+      var head = document.createElement('header');
+      head.className = 'ts-head';
+      var h = document.createElement('h3');
+      h.className = 'ts-title';
+      h.textContent = job.title;
+      var tag = document.createElement('span');
+      tag.className = 'ts-tag';
+      tag.textContent = job.tag;
+      head.appendChild(h);
+      head.appendChild(tag);
+
+      /* viewport */
+      var vp = document.createElement('div');
+      vp.className = 'ts-viewport';
+      vp.style.aspectRatio = job.aspect;   // per-project ratio → no CLS
+
+      var imgs = job.stages.map(function (st, i) {
+        var img = document.createElement('img');
+        img.src = st.src;
+        img.alt = job.title + ' — ' + st.label + ': ' + st.caption;
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.draggable = false;
+        if (i === 0) img.style.opacity = '1';
+        vp.appendChild(img);
+        return img;
+      });
+
+      var badge = document.createElement('div');
+      badge.className = 'ts-stagebadge';
+      badge.setAttribute('aria-hidden', 'true');
+      vp.appendChild(badge);
+
+      /* footer */
+      var foot = document.createElement('div');
+      foot.className = 'ts-foot';
+
+      var caption = document.createElement('p');
+      caption.className = 'ts-caption';
+      caption.setAttribute('aria-live', 'polite');
+
+      var chipsWrap = document.createElement('div');
+      chipsWrap.className = 'ts-chips';
+      var chips = job.stages.map(function (st, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ts-chip';
+        b.textContent = st.label;
+        b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+        b.addEventListener('click', function () { animateTo(i); });
+        chipsWrap.appendChild(b);
+        return b;
+      });
+
+      /* slider */
+      var range = document.createElement('div');
+      range.className = 'ts-range';
+      range.id = 'tondel-range-' + jobIndex;
+      range.setAttribute('role', 'slider');
+      range.setAttribute('tabindex', '0');
+      range.setAttribute('aria-label', job.title + ' — drag between project stages');
+      range.setAttribute('aria-valuemin', '0');
+      range.setAttribute('aria-valuemax', String(max));
+      range.setAttribute('aria-orientation', 'horizontal');
+
+      var track = document.createElement('div');
+      track.className = 'ts-track';
+      var fill = document.createElement('div');
+      fill.className = 'ts-fill';
+      track.appendChild(fill);
+      range.appendChild(track);
+
+      // tick marks at each stage position
+      for (var t = 0; t < n; t++) {
+        var tick = document.createElement('div');
+        tick.className = 'ts-tick';
+        tick.style.left = (t / max * 100) + '%';
+        range.appendChild(tick);
+      }
+
+      var knob = document.createElement('div');
+      knob.className = 'ts-knob';
+      range.appendChild(knob);
+
+      foot.appendChild(caption);
+      foot.appendChild(chipsWrap);
+      foot.appendChild(range);
+
+      var body = document.createElement('div');
+      body.className = 'ts-body';
+      body.appendChild(head);
+      body.appendChild(foot);
+
+      card.appendChild(vp);     // photo pane left
+      card.appendChild(body);   // title + controls right
+      root.appendChild(card);
+
+      /* ── state & rendering ─────────────────────────────────────── */
+      var pos = 0;            // continuous position, 0 .. max
+      var rafId = null;
+
+      function render() {
+        var pct = (pos / max) * 100;
+        knob.style.left = pct + '%';
+        fill.style.width = pct + '%';
+
+        // crossfade: each image's opacity from distance to pos; subtle zoom
+        for (var i = 0; i < n; i++) {
+          var o = clamp(1 - Math.abs(pos - i), 0, 1);
+          imgs[i].style.opacity = reduced() ? (o >= 0.5 ? '1' : '0') : o.toFixed(3);
+          if (!reduced()) {
+            imgs[i].style.transform = 'scale(' + (1 + 0.05 * (1 - o)).toFixed(4) + ')';
+          }
+        }
+
+        // nearest stage drives labels + chips + aria
+        var idx = clamp(Math.round(pos), 0, max);
+        badge.textContent = job.stages[idx].label;
+        caption.textContent = job.stages[idx].label + ' — ' + job.stages[idx].caption;
+        range.setAttribute('aria-valuenow', String(idx));
+        range.setAttribute('aria-valuetext', job.stages[idx].label);
+        chips.forEach(function (c, ci) {
+          c.setAttribute('aria-pressed', ci === idx ? 'true' : 'false');
+        });
+      }
+
+      function animateTo(target) {
+        target = clamp(target, 0, max);
+        if (rafId) cancelAnimationFrame(rafId);
+        if (reduced()) { pos = target; render(); return; }
+        var from = pos, dist = target - from;
+        if (Math.abs(dist) < 0.001) { pos = target; render(); return; }
+        var dur = 260 + 140 * Math.abs(dist);   // a touch longer for far jumps
+        var t0 = performance.now();
+        (function step(now) {
+          var k = clamp((now - t0) / dur, 0, 1);
+          pos = from + dist * ease(k);
+          render();
+          if (k < 1) rafId = requestAnimationFrame(step);
+          else rafId = null;
+        })(t0);
+      }
+
+      /* ── dragging (pointer events = mouse + touch + pen) ──────────── */
+      var dragging = false;
+
+      function posFromEvent(e) {
+        var r = range.getBoundingClientRect();
+        return clamp((e.clientX - r.left) / r.width, 0, 1) * max;
+      }
+
+      range.addEventListener('pointerdown', function (e) {
+        if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
+        dragging = true;
+        range.classList.add('ts-grabbing');
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        try { range.setPointerCapture(e.pointerId); } catch (err) {}
+        pos = posFromEvent(e);
+        render();
+        e.preventDefault();
+      });
+
+      range.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        pos = posFromEvent(e);
+        render();
+      });
+
+      function endDrag() {
+        if (!dragging) return;
+        dragging = false;
+        range.classList.remove('ts-grabbing');
+        animateTo(Math.round(pos));     // settle on nearest stage
+      }
+      range.addEventListener('pointerup', endDrag);
+      range.addEventListener('pointercancel', endDrag);
+      range.addEventListener('lostpointercapture', endDrag);
+
+      /* ── keyboard ──────────────────────────────────────────────── */
+      range.addEventListener('keydown', function (e) {
+        var idx = clamp(Math.round(pos), 0, max);
+        var next = null;
+        switch (e.key) {
+          case 'ArrowLeft':
+          case 'ArrowDown': next = idx - 1; break;
+          case 'ArrowRight':
+          case 'ArrowUp':   next = idx + 1; break;
+          case 'Home':      next = 0;       break;
+          case 'End':       next = max;     break;
+          default: return;
+        }
+        e.preventDefault();
+        animateTo(clamp(next, 0, max));
+      });
+
+      render();   // initial paint (Before)
+    }
+  })();
+  </script>
+</div>
+  </div>
+</section>
+
+<!-- CONCRETE BUILD SCENE (scroll-driven) -->
+<section id="concrete-feature" class="feature-intro">
+  <div class="section-tag">In Motion</div>
+  <h2>Watch a <em>Driveway</em> Come Together</h2>
+  <p class="section-intro">Scroll to walk through excavation, forms, the pour, and the finish — one continuous build, start to done.</p>
+</section>
+<div class="feature-mount">
+<div id="cdb-scrub">
+<style>
+  #cdb-scrub {
+    /* ── BRAND TOKENS — edit here ─────────────────────────────── */
+    --cdb-accent:       #ff6a00;                     /* safety orange   */
+    --cdb-bg:           #141618;                     /* asphalt charcoal*/
+    --cdb-ink:          #c6cacd;                     /* concrete grey   */
+    --cdb-ink-dim:      #6d7175;
+    --cdb-panel:        rgba(18, 20, 22, .72);
+    --cdb-font-display: 'Anton', 'Arial Narrow', sans-serif;
+    --cdb-font-body:    'Inter', system-ui, sans-serif;
+    --cdb-track-h:      560vh;   /* SCRUB SPEED: taller = slower  */
+    /* ─────────────────────────────────────────────────────────── */
+    background: var(--cdb-bg);
+    color: var(--cdb-ink);
+    font-family: var(--cdb-font-body);
+  }
+  #cdb-scrub, #cdb-scrub * { box-sizing: border-box; }
+
+  #cdb-scrub .cdb-track { height: var(--cdb-track-h); position: relative; }
+  #cdb-scrub .cdb-stage {
+    position: sticky; top: 0;
+    height: 100vh; height: 100svh;
+    width: 100%; overflow: hidden;
+  }
+  #cdb-scrub canvas.cdb-canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  }
+
+  /* ── HUD: stage name + draggable timeline (bottom-left) ─────── */
+  #cdb-scrub .cdb-hud {
+    position: absolute; left: clamp(14px, 4vw, 44px); bottom: clamp(64px, 9vh, 84px);
+    pointer-events: none; -webkit-user-select: none; user-select: none;
+  }
+  #cdb-scrub .cdb-num {
+    font-family: var(--cdb-font-display);
+    font-size: clamp(48px, 8.5vw, 96px); line-height: .85;
+    color: transparent; -webkit-text-stroke: 2px rgba(198,202,205,.55);
+    text-shadow: 0 2px 14px rgba(0,0,0,.35);
+  }
+  #cdb-scrub .cdb-name {
+    font-family: var(--cdb-font-display);
+    font-size: clamp(20px, 3vw, 34px); letter-spacing: .04em;
+    text-transform: uppercase; color: var(--cdb-accent); margin-top: 4px;
+    text-shadow: 0 1px 8px rgba(0,0,0,.5);
+  }
+  /* the progress bar IS the draggable / keyboard timeline */
+  #cdb-scrub .cdb-slider {
+    pointer-events: auto; touch-action: none; cursor: ew-resize;
+    width: clamp(150px, 24vw, 240px); height: 18px;
+    margin-top: 12px; position: relative; outline: none;
+  }
+  #cdb-scrub .cdb-slider::before {         /* track */
+    content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 4px;
+    background: rgba(120,124,128,.35);
+  }
+  #cdb-scrub .cdb-slider .cdb-fill {
+    position: absolute; left: 0; top: 7px; height: 4px; width: 0%;
+    background: var(--cdb-accent);
+  }
+  #cdb-scrub .cdb-slider .cdb-thumb {
+    position: absolute; top: 3px; width: 12px; height: 12px; left: 0;
+    background: var(--cdb-accent); transform: translateX(-6px);
+    box-shadow: 0 0 0 3px rgba(0,0,0,.35);
+  }
+  #cdb-scrub .cdb-slider:focus-visible::before { outline: 2px solid var(--cdb-accent); outline-offset: 4px; }
+
+  /* ── checklist (top-right) ──────────────────────────────────── */
+  #cdb-scrub .cdb-check {
+    position: absolute; top: clamp(12px, 3vh, 28px); right: clamp(12px, 3vw, 30px);
+    background: var(--cdb-panel); padding: 10px 14px;
+    font: 600 11px/1.85 var(--cdb-font-body); letter-spacing: .06em;
+    text-transform: uppercase; color: var(--cdb-ink-dim);
+    -webkit-user-select: none; user-select: none; pointer-events: none;
+    backdrop-filter: blur(2px);
+  }
+  #cdb-scrub .cdb-check .ck b {
+    display: inline-block; width: 16px; color: transparent; font-weight: 600;
+  }
+  #cdb-scrub .cdb-check .ck.done    { color: var(--cdb-ink); }
+  #cdb-scrub .cdb-check .ck.done b  { color: var(--cdb-accent); }
+  #cdb-scrub .cdb-check .ck.active  { color: #fff; }
+  #cdb-scrub .cdb-check .ck.active b{ color: var(--cdb-accent); }
+
+  /* ── stage chips (bottom-center) ────────────────────────────── */
+  #cdb-scrub .cdb-chips {
+    position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+    display: flex; gap: 6px; padding: 6px 8px; background: var(--cdb-panel);
+    backdrop-filter: blur(2px);
+  }
+  #cdb-scrub .cdb-chips button {
+    all: unset; cursor: pointer; width: 26px; height: 26px; text-align: center;
+    font: 400 13px/26px var(--cdb-font-display); color: var(--cdb-ink-dim);
+    background: #202427; border: 1px solid #33383c;
+  }
+  #cdb-scrub .cdb-chips button:hover { color: var(--cdb-ink); border-color: var(--cdb-ink-dim); }
+  #cdb-scrub .cdb-chips button.done   { color: var(--cdb-accent); }
+  #cdb-scrub .cdb-chips button.active {
+    color: #101214; background: var(--cdb-accent); border-color: var(--cdb-accent);
+  }
+  #cdb-scrub .cdb-chips button:focus-visible { outline: 2px solid var(--cdb-accent); outline-offset: 2px; }
+  #cdb-scrub .cdb-tip {
+    position: absolute; bottom: calc(100% + 10px); left: 0;
+    transform: translateX(-50%); white-space: nowrap;
+    background: #101214; border: 1px solid #33383c; padding: 7px 10px;
+    font: 600 11px/1.4 var(--cdb-font-body); color: var(--cdb-ink);
+    opacity: 0; transition: opacity .15s ease; pointer-events: none;
+  }
+  #cdb-scrub .cdb-tip em { display: block; font-style: normal; color: var(--cdb-ink-dim); font-weight: 400; }
+  #cdb-scrub .cdb-tip.on { opacity: 1; }
+
+  /* ── scroll cue ─────────────────────────────────────────────── */
+  #cdb-scrub .cdb-cue {
+    position: absolute; left: 50%; bottom: 58px; transform: translateX(-50%);
+    font: 600 10px/1 var(--cdb-font-body); letter-spacing: .3em;
+    text-transform: uppercase; color: var(--cdb-ink);
+    text-shadow: 0 1px 6px rgba(0,0,0,.6);
+    transition: opacity .4s ease; pointer-events: none; white-space: nowrap;
+  }
+  #cdb-scrub .cdb-cue::after {
+    content: ""; display: block; width: 1px; height: 22px;
+    background: var(--cdb-accent); margin: 8px auto 0;
+  }
+
+  @media (max-width: 600px) {
+    #cdb-scrub .cdb-check { display: none; }   /* declutter small screens */
+  }
+
+  /* ── reduced motion: static finished scene, no scroll room ──── */
+  @media (prefers-reduced-motion: reduce) {
+    #cdb-scrub .cdb-track { height: auto; }
+    #cdb-scrub .cdb-stage { position: relative; }
+    #cdb-scrub .cdb-cue, #cdb-scrub .cdb-chips, #cdb-scrub .cdb-slider { display: none; }
+  }
+</style>
+
+  <div class="cdb-track">
+    <div class="cdb-stage" id="cdbStage">
+      <canvas class="cdb-canvas" id="cdbCanvas" role="img"
+        aria-label="Illustration of a residential driveway being excavated, formed, poured, and finished in front of a two-story house"></canvas>
+
+      <div class="cdb-check" id="cdbCheck" aria-hidden="true"></div>
+
+      <div class="cdb-hud">
+        <div class="cdb-num"  id="cdbNum"  aria-hidden="true">01</div>
+        <div class="cdb-name" id="cdbName" aria-hidden="true">Excavation</div>
+        <div class="cdb-slider" id="cdbSlider" role="slider" tabindex="0"
+             aria-label="Build timeline" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span class="cdb-fill"  id="cdbFill"></span>
+          <span class="cdb-thumb" id="cdbThumb"></span>
+        </div>
+      </div>
+
+      <div class="cdb-chips" id="cdbChips" aria-label="Jump to build stage">
+        <div class="cdb-tip" id="cdbTip"></div>
+      </div>
+
+      <div class="cdb-cue" id="cdbCue">Scroll to pour</div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ════════════════ TUNING KNOBS ════════════════ */
+  var CFG = {
+    EASE_K: 0.14,             // timeline easing per frame (0..1)
+    PARTICLE_DENSITY: 1,      // 1 = full; auto ×0.5 on small screens
+    ZOOM: 0.07,               // camera push-in amount across the build
+    SKY: {                    // [top, bottom] gradient stops
+      morning: ['#8fb8d8', '#d9e7ef'],
+      golden:  ['#e89a55', '#f6dcae']
+    },
+    STAGES: [                 // label boundaries on the 0..1 timeline
+      { t: 0.00, num: '01', name: 'Excavation',  tip: 'Dig out and grade the subgrade' },
+      { t: 0.08, num: '02', name: 'Gravel base', tip: 'Compacted aggregate for drainage' },
+      { t: 0.22, num: '03', name: 'Formwork',    tip: 'Boards and stakes shape the slab' },
+      { t: 0.34, num: '04', name: 'Rebar grid',  tip: 'Steel grid for tensile strength' },
+      { t: 0.46, num: '05', name: 'The pour',    tip: 'Ready-mix fills the forms' },
+      { t: 0.64, num: '06', name: 'Screeding',   tip: 'Straightedge levels the surface' },
+      { t: 0.76, num: '07', name: 'Finishing',   tip: 'Cure, float, saw control joints' },
+      { t: 0.90, num: '08', name: 'Complete',    tip: 'Forms off — ready to park' }
+    ],
+    TW: {                     // per-phase animation windows (re-time here)
+      grade:  [0.02, 0.10],  gravel: [0.08, 0.22],
+      forms:  [0.24, 0.33],  rebar:  [0.34, 0.46],
+      pour:   [0.46, 0.64],  screed: [0.65, 0.76],
+      finish: [0.76, 0.90],  done:   [0.90, 0.98],
+      truckIn:[0.435,0.475], truckOut:[0.745,0.79],
+      chute:  [0.468,0.495], chuteOff:[0.615,0.648],
+      worker: [0.648,0.672], workerOff:[0.748,0.772],
+      golden: [0.55, 1.00],  glow:    [0.86, 1.00]
+    }
+  };
+  /* ═══════════════════════════════════════════════ */
+
+  var root    = document.getElementById('cdb-scrub');
+  var track   = root.querySelector('.cdb-track');
+  var stageEl = document.getElementById('cdbStage');
+  var canvas  = document.getElementById('cdbCanvas');
+  var ctx     = canvas.getContext('2d');
+  var elNum   = document.getElementById('cdbNum');
+  var elName  = document.getElementById('cdbName');
+  var elCue   = document.getElementById('cdbCue');
+  var slider  = document.getElementById('cdbSlider');
+  var elFill  = document.getElementById('cdbFill');
+  var elThumb = document.getElementById('cdbThumb');
+  var chipsEl = document.getElementById('cdbChips');
+  var tipEl   = document.getElementById('cdbTip');
+  var checkEl = document.getElementById('cdbCheck');
+
+  var reduced   = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var finePtr   = window.matchMedia('(pointer: fine)').matches;
+  var smallScr  = window.matchMedia('(max-width: 640px)').matches;
+  var PD        = CFG.PARTICLE_DENSITY * (smallScr ? 0.5 : 1);
+
+  /* ── helpers ─────────────────────────────────────────────────── */
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function lerp(a, b, t)  { return a + (b - a) * t; }
+  function segw(t, w)     { return clamp((t - w[0]) / (w[1] - w[0]), 0, 1); }
+  function ease(t)        { return t * t * (3 - 2 * t); }
+  function hx(c)          { var n = parseInt(c.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  function mixHex(c1, c2, t) {
+    var a = hx(c1), b = hx(c2);
+    return 'rgb(' + Math.round(lerp(a[0], b[0], t)) + ',' + Math.round(lerp(a[1], b[1], t)) + ',' + Math.round(lerp(a[2], b[2], t)) + ')';
+  }
+  function mulberry32(s) {
+    return function () {
+      s |= 0; s = s + 0x6D2B79F5 | 0;
+      var x = Math.imul(s ^ s >>> 15, 1 | s);
+      x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x;
+      return ((x ^ x >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ── scene geometry (logical 1000 × 560) ─────────────────────── */
+  var W = 1000, H = 560, CAMX = 500, CAMY = 330;
+  var Q = { farY: 301, nearY: 440, farL: 552, farR: 704, nearL: 250, nearR: 790 };
+  function qp(u, v) {
+    var lx = lerp(Q.farL, Q.nearL, v), rx = lerp(Q.farR, Q.nearR, v);
+    return [lerp(lx, rx, u), lerp(Q.farY, Q.nearY, v)];
+  }
+  function quadPath(c) {
+    c.beginPath();
+    c.moveTo(Q.farL, Q.farY); c.lineTo(Q.farR, Q.farY);
+    c.lineTo(Q.nearR, Q.nearY); c.lineTo(Q.nearL, Q.nearY);
+    c.closePath();
+  }
+  function regionPath(c, edgeFn) {
+    var p = qp(0, 0);
+    c.beginPath(); c.moveTo(p[0], p[1]);
+    for (var i = 0; i <= 24; i++) {
+      var v = i / 24;
+      p = qp(clamp(edgeFn(v), 0, 1), v);
+      c.lineTo(p[0], p[1]);
+    }
+    p = qp(0, 1); c.lineTo(p[0], p[1]);
+    c.closePath();
+  }
+
+  var ACCENT = getComputedStyle(root).getPropertyValue('--cdb-accent').trim() || '#ff6a00';
+  var COL = {
+    lawn: '#5d7a4c', lawnDark: '#4d6740', treeline: '#3b4a39',
+    walk: '#a7a9ab', curb: '#8f9294', street: '#26292c',
+    dirt: '#4a4136', pitEdge: '#241f1a',
+    gravel: '#63666a', wet: '#61656a', smooth: '#6e7276', cured: '#b4b8bb',
+    joint: '#43474b', steel: '#3a3f45', rust: '#7a4a2e',
+    stream: '#64686d', stake: '#26292c',
+    voidC: '#0d0e0f', dirtX: '#453b31', gravelX: '#5d6064',
+    siding: '#9aa4ab', roof: '#3d4247', glass: '#2e3f4a', trim: '#d7dadc',
+    canopy: '#46603e', canopyLit: '#587a4a', trunk: '#4a3b2c'
+  };
+
+  /* ── seeded texture points (stable frame to frame) ───────────── */
+  var rnd = mulberry32(20260702), i;
+  var clods = [], gravelDots = [], wetBlobs = [], specks = [], dust = [], grass = [], rebarSeed = [];
+  for (i = 0; i < 90  * PD; i++) clods.push({ u: rnd(), v: rnd(), r: 3 + rnd() * 7, a: .25 + rnd() * .3 });
+  for (i = 0; i < 300 * PD; i++) gravelDots.push({ u: rnd(), v: rnd(), r: 1 + rnd() * 2.1, s: rnd() });
+  for (i = 0; i < 60  * PD; i++) wetBlobs.push({ u: rnd(), v: rnd(), rx: 8 + rnd() * 24, ry: 3 + rnd() * 6 });
+  for (i = 0; i < 150 * PD; i++) specks.push({ u: rnd(), v: rnd(), r: .6 + rnd() * 1.1, s: rnd() });
+  for (i = 0; i < 26  * PD; i++) dust.push({ x: 300 + rnd() * 420, y: 300 + rnd() * 120, s: .4 + rnd() * .8, p: rnd() * 6.28 });
+  for (i = 0; i < 46  * PD; i++) {
+    var side = rnd() < 0.5;
+    grass.push({
+      x: side ? 40 + rnd() * 180 : 810 + rnd() * 150,
+      y: 315 + rnd() * 118, h: 5 + rnd() * 6, p: rnd() * 6.28
+    });
+  }
+  for (i = 0; i < 16; i++) rebarSeed.push(rnd());
+  // spoil piles beside the pit — hauled away as the base goes in
+  var piles = [
+    { x: 186, y: 352, w: 116, h: 42, dots: [] },
+    { x: 828, y: 374, w: 92,  h: 32, dots: [] }
+  ];
+  for (i = 0; i < piles.length; i++) {
+    for (var pd = 0; pd < 12; pd++) {
+      piles[i].dots.push({ dx: (rnd() - 0.5) * 0.7, dy: rnd() * 0.7, r: 1.6 + rnd() * 2.6 });
+    }
+  }
+  var clouds = [
+    { x0: 120, y: 66,  s: 1.15, sp: 1.0 },
+    { x0: 520, y: 108, s: 0.8,  sp: 1.5 },
+    { x0: 860, y: 52,  s: 1.0,  sp: 0.7 }
+  ];
+
+  /* ── offscreen backdrops (cached, redrawn only on resize) ────── */
+  var BLEED = 40;
+  var bFar = document.createElement('canvas'), bGround = document.createElement('canvas');
+  var backdropScale = 0;
+
+  function renderGround(g, rs) {
+    g.setTransform(rs, 0, 0, rs, BLEED * rs, BLEED * rs);
+    g.clearRect(-BLEED, -BLEED, W + 2 * BLEED, H + 2 * BLEED);
+    var r2 = mulberry32(7), j;
+    // lawn
+    g.fillStyle = COL.lawn; g.fillRect(-BLEED, 250, W + 2 * BLEED, 236);
+    for (j = 0; j < 60; j++) {                            // mottling
+      g.fillStyle = r2() < .5 ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.05)';
+      g.beginPath();
+      g.ellipse(-BLEED + r2() * (W + 80), 255 + r2() * 190, 14 + r2() * 30, 5 + r2() * 9, 0, 0, 6.2832);
+      g.fill();
+    }
+    // public sidewalk (left + right of driveway)
+    g.fillStyle = COL.walk;
+    g.fillRect(-BLEED, 446, Q.nearL + BLEED, 28);
+    g.fillRect(Q.nearR, 446, W + BLEED - Q.nearR, 28);
+    g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = 1.5;
+    for (j = -BLEED; j < W + BLEED; j += 55) {
+      if (j > Q.nearL - 8 && j < Q.nearR + 8) continue;
+      g.beginPath(); g.moveTo(j, 447); g.lineTo(j, 473); g.stroke();
+    }
+    g.fillStyle = 'rgba(255,255,255,.18)';
+    g.fillRect(-BLEED, 446, Q.nearL + BLEED, 2);
+    g.fillRect(Q.nearR, 446, W + BLEED - Q.nearR, 2);
+    // curb + street
+    g.fillStyle = COL.curb;
+    g.fillRect(-BLEED, 474, Q.nearL + BLEED, 12);
+    g.fillRect(Q.nearR, 474, W + BLEED - Q.nearR, 12);
+    var st = g.createLinearGradient(0, 486, 0, H + BLEED);
+    st.addColorStop(0, COL.street); st.addColorStop(1, '#1a1d20');
+    g.fillStyle = st; g.fillRect(-BLEED, 486, W + 2 * BLEED, H + BLEED - 486);
+    for (j = 0; j < 90; j++) {                            // asphalt texture
+      g.fillStyle = 'rgba(255,255,255,.04)';
+      g.fillRect(-BLEED + r2() * (W + 80), 490 + r2() * 90, 2, 1.2);
+    }
+    // dark cut where the cross-section face sits
+    g.fillStyle = COL.voidC; g.fillRect(Q.nearL, Q.nearY, Q.nearR - Q.nearL, 486 - Q.nearY);
+    // mailbox (post, box, accent flag) + shadow
+    g.fillStyle = 'rgba(0,0,0,.2)';
+    g.beginPath(); g.ellipse(942, 449, 26, 5, 0, 0, 6.2832); g.fill();
+    g.fillStyle = '#3a3028'; g.fillRect(928, 402, 6, 46);
+    g.fillStyle = '#2b2f33'; g.fillRect(912, 388, 40, 20);
+    g.fillStyle = '#22262a'; g.fillRect(912, 388, 8, 20);
+    g.fillStyle = ACCENT;    g.fillRect(948, 378, 4, 12); g.fillRect(948, 378, 11, 4);
+  }
+
+  function renderFar(g, rs) {
+    g.setTransform(rs, 0, 0, rs, BLEED * rs, BLEED * rs);
+    g.clearRect(-BLEED, -BLEED, W + 2 * BLEED, H + 2 * BLEED);
+    var j;
+    // distant treeline
+    g.fillStyle = COL.treeline;
+    g.fillRect(-BLEED, 240, W + 2 * BLEED, 22);
+    for (j = -BLEED; j < W + BLEED; j += 52) {
+      g.beginPath(); g.ellipse(j, 241, 30, 12, 0, 0, 6.2832); g.fill();
+    }
+    var fade = g.createLinearGradient(0, 258, 0, 274);
+    fade.addColorStop(0, COL.treeline); fade.addColorStop(1, 'rgba(59,74,57,0)');
+    g.fillStyle = fade; g.fillRect(-BLEED, 258, W + 2 * BLEED, 16);
+
+    // house shadow (sun from the left → falls right)
+    g.fillStyle = 'rgba(0,0,0,.14)';
+    g.beginPath();
+    g.moveTo(310, 300); g.lineTo(730, 300); g.lineTo(838, 336); g.lineTo(418, 336);
+    g.closePath(); g.fill();
+
+    // ── house: two-story block ──
+    g.fillStyle = COL.siding; g.fillRect(300, 132, 260, 168);
+    g.strokeStyle = 'rgba(0,0,0,.10)'; g.lineWidth = 1;
+    for (j = 141; j < 300; j += 9) { g.beginPath(); g.moveTo(300, j); g.lineTo(560, j); g.stroke(); }
+    var lit = g.createLinearGradient(300, 0, 560, 0);   // sun-lit left face
+    lit.addColorStop(0, 'rgba(255,255,255,.12)'); lit.addColorStop(.5, 'rgba(255,255,255,0)');
+    lit.addColorStop(1, 'rgba(0,0,0,.10)');
+    g.fillStyle = lit; g.fillRect(300, 132, 260, 168);
+    // roof + overhang
+    g.fillStyle = COL.roof;
+    g.beginPath(); g.moveTo(283, 138); g.lineTo(430, 62); g.lineTo(577, 138); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.15)'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(430, 64); g.lineTo(575, 136); g.stroke();
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(300, 138, 260, 7); // eave shadow
+    // attached garage
+    g.fillStyle = mixHex(COL.siding, '#000000', 0.06); g.fillRect(560, 214, 160, 86);
+    for (j = 222; j < 300; j += 9) { g.strokeStyle = 'rgba(0,0,0,.10)'; g.beginPath(); g.moveTo(560, j); g.lineTo(720, j); g.stroke(); }
+    g.fillStyle = COL.roof;
+    g.beginPath(); g.moveTo(550, 219); g.lineTo(640, 168); g.lineTo(730, 219); g.closePath(); g.fill();
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(560, 219, 160, 6);
+    // garage door (driveway meets this)
+    g.fillStyle = '#b9bec2'; g.fillRect(570, 240, 130, 60);
+    g.strokeStyle = 'rgba(0,0,0,.16)'; g.lineWidth = 2;
+    for (j = 254; j < 300; j += 15) { g.beginPath(); g.moveTo(571, j); g.lineTo(699, j); g.stroke(); }
+    g.strokeStyle = 'rgba(0,0,0,.3)'; g.strokeRect(570, 240, 130, 60);
+    // front door + porch step + light fixture
+    g.fillStyle = '#4a3527'; g.fillRect(468, 238, 36, 62);
+    g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 2; g.strokeRect(468, 238, 36, 62);
+    g.fillStyle = '#c9b47a'; g.beginPath(); g.arc(498, 270, 2.2, 0, 6.2832); g.fill();
+    g.fillStyle = COL.curb; g.fillRect(462, 300, 48, 8);
+    g.fillStyle = '#2b2f33'; g.fillRect(509, 246, 7, 12);
+    g.fillStyle = '#d8b56a'; g.fillRect(511, 249, 3, 5);
+    // windows (2 up, 1 down)
+    var wins = [[326, 158, 44, 36], [398, 158, 44, 36], [330, 232, 54, 44]];
+    for (j = 0; j < wins.length; j++) {
+      var wn = wins[j];
+      g.fillStyle = COL.glass; g.fillRect(wn[0], wn[1], wn[2], wn[3]);
+      g.strokeStyle = COL.trim; g.lineWidth = 3; g.strokeRect(wn[0], wn[1], wn[2], wn[3]);
+      g.lineWidth = 1.5;
+      g.beginPath(); g.moveTo(wn[0] + wn[2] / 2, wn[1]); g.lineTo(wn[0] + wn[2] / 2, wn[1] + wn[3]); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,.2)';
+      g.beginPath(); g.moveTo(wn[0] + 4, wn[1] + wn[3] - 6); g.lineTo(wn[0] + wn[2] - 8, wn[1] + 5); g.stroke();
+      g.fillStyle = COL.trim; g.fillRect(wn[0] - 3, wn[1] + wn[3], wn[2] + 6, 4);
+    }
+    // shrubs at the house front
+    var shr = [[322, 296, 15], [368, 298, 11]];
+    for (j = 0; j < shr.length; j++) {
+      g.fillStyle = COL.canopy;
+      g.beginPath(); g.ellipse(shr[j][0], shr[j][1], shr[j][2], shr[j][2] * .8, 0, 0, 6.2832); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.10)';
+      g.beginPath(); g.ellipse(shr[j][0] - 4, shr[j][1] - 3, shr[j][2] * .5, shr[j][2] * .4, 0, 0, 6.2832); g.fill();
+    }
+    // yard tree (right side) + shadow
+    g.fillStyle = 'rgba(0,0,0,.15)';
+    g.beginPath(); g.ellipse(912, 276, 62, 10, 0, 0, 6.2832); g.fill();
+    g.fillStyle = COL.trunk;
+    g.beginPath(); g.moveTo(864, 268); g.lineTo(869, 190); g.lineTo(877, 190); g.lineTo(880, 268); g.closePath(); g.fill();
+    var can = [[870, 150, 54], [828, 180, 34], [914, 176, 38]];
+    for (j = 0; j < can.length; j++) {
+      g.fillStyle = COL.canopy;
+      g.beginPath(); g.arc(can[j][0], can[j][1], can[j][2], 0, 6.2832); g.fill();
+      g.fillStyle = COL.canopyLit; g.globalAlpha = .55;
+      g.beginPath(); g.arc(can[j][0] - can[j][2] * .3, can[j][1] - can[j][2] * .25, can[j][2] * .6, 0, 6.2832); g.fill();
+      g.globalAlpha = 1;
+    }
+  }
+
+  function renderBackdrops(rs) {
+    backdropScale = rs;
+    var w = Math.ceil((W + 2 * BLEED) * rs), h = Math.ceil((H + 2 * BLEED) * rs);
+    bFar.width = w;    bFar.height = h;    renderFar(bFar.getContext('2d'), rs);
+    bGround.width = w; bGround.height = h; renderGround(bGround.getContext('2d'), rs);
+  }
+
+  /* ── camera / layers ─────────────────────────────────────────── */
+  var fitS = 1, fitOX = 0, fitOY = 0;   // fit-to-canvas transform
+  var parX = 0, parY = 0;               // eased cursor parallax (-1..1)
+
+  // depth: 0 = far sky … 1 = foreground. Sets ctx transform for a layer.
+  function layer(t, depth) {
+    var z = 1 + CFG.ZOOM * t * lerp(0.35, 1, depth);
+    var px = parX * 10 * lerp(0.25, 1, depth);
+    var py = parY * 6  * lerp(0.25, 1, depth);
+    var s = fitS * z;
+    ctx.setTransform(s, 0, 0, s,
+      fitOX + fitS * (CAMX - z * CAMX + px),
+      fitOY + fitS * (CAMY - z * CAMY + py));
+  }
+
+  function drawPile(P, hs, alpha) {
+    var w = P.w, h = P.h * hs, j;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(0,0,0,.18)';                       // shadow (sun left)
+    ctx.beginPath(); ctx.ellipse(P.x + w * 0.16, P.y + 2, w * 0.55, 5, 0, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = COL.dirt;                                 // lumpy mound
+    ctx.beginPath();
+    ctx.moveTo(P.x - w / 2, P.y);
+    ctx.quadraticCurveTo(P.x - w * 0.28, P.y - h,        P.x - w * 0.05, P.y - h * 0.82);
+    ctx.quadraticCurveTo(P.x + w * 0.10, P.y - h * 1.05, P.x + w * 0.30, P.y - h * 0.5);
+    ctx.quadraticCurveTo(P.x + w * 0.42, P.y - h * 0.2,  P.x + w / 2, P.y);
+    ctx.closePath(); ctx.fill();
+    for (j = 0; j < P.dots.length; j++) {                     // clods
+      var d = P.dots[j];
+      ctx.fillStyle = 'rgba(20,15,10,.3)';
+      ctx.beginPath();
+      ctx.ellipse(P.x + d.dx * w, P.y - d.dy * h, d.r, d.r * .6, 0, 0, 6.2832);
+      ctx.fill();
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 2;  // sun-lit ridge
+    ctx.beginPath();
+    ctx.moveTo(P.x - w * 0.45, P.y - h * 0.08);
+    ctx.quadraticCurveTo(P.x - w * 0.26, P.y - h * 0.95, P.x - w * 0.03, P.y - h * 0.8);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  /* ── the frame ───────────────────────────────────────────────── */
+  function draw(t, ms) {
+    var cw = canvas.width, ch = canvas.height;
+    if (!cw || !ch) return;
+    fitS = Math.min(cw / W, ch / H);
+    fitOX = (cw - W * fitS) / 2; fitOY = (ch - H * fitS) / 2;
+
+    var TW = CFG.TW;
+    var grade   = ease(segw(t, TW.grade)),  gravel = ease(segw(t, TW.gravel));
+    var forms   = ease(segw(t, TW.forms)),  rebar  = segw(t, TW.rebar);
+    var pour    = ease(segw(t, TW.pour)),   screed = ease(segw(t, TW.screed));
+    var finish  = ease(segw(t, TW.finish)), done   = ease(segw(t, TW.done));
+    var truckIn = ease(segw(t, TW.truckIn)), truckOut = ease(segw(t, TW.truckOut));
+    var chuteEx = ease(segw(t, TW.chute)) * (1 - ease(segw(t, TW.chuteOff)));
+    var workerA = ease(segw(t, TW.worker)) * (1 - ease(segw(t, TW.workerOff)));
+    var g       = ease(segw(t, TW.golden));           // golden-hour amount
+    var glow    = ease(segw(t, TW.glow));             // porch/window glow
+    var formGone = ease(segw(t, [TW.done[0], TW.done[0] + 0.05]));
+
+    var p, j, k;
+
+    /* SKY (device space) */
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    var sky = ctx.createLinearGradient(0, 0, 0, ch * 0.75);
+    sky.addColorStop(0, mixHex(CFG.SKY.morning[0], CFG.SKY.golden[0], g));
+    sky.addColorStop(1, mixHex(CFG.SKY.morning[1], CFG.SKY.golden[1], g));
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, cw, ch);
+    // sun: drifts lower + warmer through the day
+    var sx = cw * lerp(0.20, 0.13, g), sy = ch * lerp(0.15, 0.30, g), sr = Math.max(ch, cw) * 0.16;
+    var sun = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
+    sun.addColorStop(0, 'rgba(255,244,214,' + (0.85 - 0.15 * g) + ')');
+    sun.addColorStop(0.12, 'rgba(255,' + Math.round(lerp(238, 190, g)) + ',' + Math.round(lerp(190, 120, g)) + ',.55)');
+    sun.addColorStop(1, 'rgba(255,220,160,0)');
+    ctx.fillStyle = sun; ctx.fillRect(0, 0, cw, ch);
+
+    /* CLOUDS (ambient drift — cosmetic only) */
+    layer(t, 0.4);
+    ctx.fillStyle = 'rgba(255,255,255,' + (0.66 - 0.2 * g) + ')';
+    for (j = 0; j < clouds.length; j++) {
+      var cl = clouds[j];
+      var cx = ((cl.x0 + ms * 0.0035 * cl.sp) % (W + 320)) - 160;
+      ctx.beginPath();
+      ctx.ellipse(cx, cl.y, 52 * cl.s, 13 * cl.s, 0, 0, 6.2832);
+      ctx.ellipse(cx + 34 * cl.s, cl.y - 8 * cl.s, 34 * cl.s, 11 * cl.s, 0, 0, 6.2832);
+      ctx.ellipse(cx - 38 * cl.s, cl.y - 4 * cl.s, 30 * cl.s, 10 * cl.s, 0, 0, 6.2832);
+      ctx.fill();
+    }
+
+    /* GROUND backdrop (lawn / sidewalk / street / mailbox) */
+    layer(t, 1);
+    ctx.drawImage(bGround, -BLEED, -BLEED, W + 2 * BLEED, H + 2 * BLEED);
+
+    /* FAR backdrop (treeline / house / tree) — gentle parallax */
+    layer(t, 0.85);
+    ctx.drawImage(bFar, -BLEED, -BLEED, W + 2 * BLEED, H + 2 * BLEED);
+    if (glow > 0.01) {          // porch light + windows come on at dusk
+      var pg = ctx.createRadialGradient(512, 252, 0, 512, 252, 34);
+      pg.addColorStop(0, 'rgba(255,196,110,' + (0.55 * glow).toFixed(3) + ')');
+      pg.addColorStop(1, 'rgba(255,196,110,0)');
+      ctx.fillStyle = pg; ctx.fillRect(478, 218, 68, 68);
+      ctx.fillStyle = 'rgba(255,190,110,' + (0.30 * glow).toFixed(3) + ')';
+      ctx.fillRect(326, 158, 44, 36); ctx.fillRect(398, 158, 44, 36); ctx.fillRect(330, 232, 54, 44);
+    }
+
+    /* ── the build (foreground, depth 1) ── */
+    layer(t, 1);
+
+    // 1 ▸ excavated pit
+    quadPath(ctx); ctx.fillStyle = COL.dirt; ctx.fill();
+    ctx.save(); quadPath(ctx); ctx.clip();
+    for (j = 0; j < clods.length; j++) {
+      var c = clods[j], a = c.a * (1 - 0.85 * grade);
+      if (a <= 0.01) continue;
+      p = qp(c.u, c.v);
+      ctx.fillStyle = 'rgba(20,15,10,' + a.toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.ellipse(p[0], p[1], c.r * lerp(.6, 1.15, c.v), c.r * .38 * lerp(.6, 1.15, c.v), 0, 0, 6.2832);
+      ctx.fill();
+    }
+    // ambient occlusion inside the cut
+    quadPath(ctx); ctx.strokeStyle = 'rgba(0,0,0,.30)'; ctx.lineWidth = 22; ctx.stroke();
+    ctx.restore();
+    quadPath(ctx); ctx.strokeStyle = COL.pitEdge; ctx.lineWidth = 3; ctx.stroke();
+
+    // spoil piles from the dig — hauled off as the base goes in
+    var pileA = 1 - ease(segw(t, [0.10, 0.20]));
+    if (pileA > 0.02) {
+      var pileH = lerp(0.25, 1, pileA) * (1 - 0.15 * grade);
+      drawPile(piles[0], pileH, Math.min(1, pileA * 2));
+      drawPile(piles[1], pileH * 0.9, Math.min(1, pileA * 2));
+    }
+
+    // 2 ▸ gravel sweeping in
+    if (gravel > 0) {
+      var gEdge = function (vv) { return -0.08 + gravel * 1.2 + 0.05 * Math.sin(vv * 9 + 2); };
+      ctx.save(); quadPath(ctx); ctx.clip();
+      regionPath(ctx, gEdge); ctx.fillStyle = COL.gravel; ctx.fill();
+      for (j = 0; j < gravelDots.length; j++) {
+        var gd = gravelDots[j];
+        if (gd.u > gEdge(gd.v)) continue;
+        p = qp(gd.u, gd.v);
+        ctx.fillStyle = gd.s < .5 ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.22)';
+        ctx.beginPath(); ctx.arc(p[0], p[1], gd.r * lerp(.6, 1.2, gd.v), 0, 6.2832); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // 4 ▸ rebar grid (rust-toned bars with cast shadows)
+    if (rebar > 0 && pour < 1) {
+      ctx.lineCap = 'round';
+      var bars = [];
+      for (j = 0; j < 6; j++) bars.push({ dir: 'u', at: 0.14 + j * 0.144 });
+      for (j = 0; j < 7; j++) bars.push({ dir: 'v', at: 0.10 + j * 0.133 });
+      for (j = 0; j < bars.length; j++) {
+        var w0 = j / bars.length * 0.72;
+        var lp = clamp((rebar - w0) / 0.28, 0, 1);
+        if (lp <= 0) continue;
+        var B = bars[j], a1, a2;
+        if (B.dir === 'u') { a1 = qp(0.03, B.at); a2 = qp(0.03 + 0.94 * lp, B.at); }
+        else               { a1 = qp(B.at, 0.03); a2 = qp(B.at, 0.03 + 0.94 * lp); }
+        ctx.strokeStyle = 'rgba(0,0,0,.22)';                      // shadow
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(a1[0] + 3, a1[1] + 3); ctx.lineTo(a2[0] + 3, a2[1] + 3); ctx.stroke();
+        ctx.strokeStyle = mixHex(COL.steel, COL.rust, rebarSeed[j] * 0.55);
+        ctx.lineWidth = B.dir === 'u' ? lerp(2, 3.4, B.at) : 2.6;
+        ctx.beginPath(); ctx.moveTo(a1[0], a1[1]); ctx.lineTo(a2[0], a2[1]); ctx.stroke();
+      }
+    }
+
+    // 5–7 ▸ concrete: pour, screed, cure, joints
+    var pEdge = function (vv) {
+      return -0.10 + pour * 1.25 + 0.08 * Math.sin(vv * 7 + 1) + 0.04 * Math.sin(vv * 17);
+    };
+    var sU = clamp(screed * 1.08 - 0.04, 0, 1);
+    if (pour > 0) {
+      ctx.save(); quadPath(ctx); ctx.clip();
+      regionPath(ctx, pEdge);
+      ctx.fillStyle = mixHex(COL.wet, COL.cured, finish); ctx.fill();
+      // fresh concrete faintly mirrors the sky while it's wet
+      var refl = 0.08 * (1 - finish);
+      if (refl > 0.005) {
+        regionPath(ctx, pEdge);
+        ctx.fillStyle = 'rgba(158,188,214,' + refl.toFixed(3) + ')';
+        ctx.fill();
+      }
+
+      var blobA = 0.20 * (1 - finish);
+      if (blobA > 0.01) {
+        for (j = 0; j < wetBlobs.length; j++) {
+          var wb = wetBlobs[j];
+          if (wb.u > pEdge(wb.v)) continue;
+          p = qp(wb.u, wb.v);
+          ctx.fillStyle = 'rgba(40,44,48,' + blobA.toFixed(3) + ')';
+          ctx.beginPath();
+          ctx.ellipse(p[0], p[1], wb.rx * lerp(.55, 1.1, wb.v), wb.ry * lerp(.55, 1.1, wb.v), 0, 0, 6.2832);
+          ctx.fill();
+        }
+      }
+      if (screed > 0) {
+        regionPath(ctx, function () { return sU; });
+        ctx.fillStyle = mixHex(COL.smooth, COL.cured, finish); ctx.fill();
+      }
+      // wet sheen — a soft highlight band that travels with the timeline
+      var shPos = segw(t, [0.50, 0.88]);
+      if (shPos > 0 && shPos < 1) {
+        var b1 = qp(clamp(shPos * 1.2 - 0.22, 0, 1), 0.5);
+        var b2 = qp(clamp(shPos * 1.2 + 0.02, 0, 1), 0.5);
+        var sg = ctx.createLinearGradient(b1[0], b1[1], b2[0], b2[1]);
+        var sa = 0.12 * (1 - finish * 0.65);
+        sg.addColorStop(0, 'rgba(255,255,255,0)');
+        sg.addColorStop(.5, 'rgba(255,255,255,' + sa.toFixed(3) + ')');
+        sg.addColorStop(1, 'rgba(255,255,255,0)');
+        regionPath(ctx, pEdge); ctx.fillStyle = sg; ctx.fill();
+      }
+      if (finish > 0) {
+        for (j = 0; j < specks.length; j++) {
+          var sp = specks[j];
+          p = qp(sp.u, sp.v);
+          ctx.fillStyle = sp.s < .5
+            ? 'rgba(255,255,255,' + (0.12 * finish).toFixed(3) + ')'
+            : 'rgba(0,0,0,' + (0.10 * finish).toFixed(3) + ')';
+          ctx.beginPath(); ctx.arc(p[0], p[1], sp.r * lerp(.6, 1.2, sp.v), 0, 6.2832); ctx.fill();
+        }
+        // broom-finish texture: faint strokes running down the slab
+        ctx.strokeStyle = 'rgba(0,0,0,' + (0.05 * finish).toFixed(3) + ')';
+        ctx.lineWidth = 1;
+        for (j = 1; j < 10; j++) {
+          ctx.beginPath();
+          p = qp(j / 10, 0.03); ctx.moveTo(p[0], p[1]);
+          p = qp(j / 10, 0.97); ctx.lineTo(p[0], p[1]);
+          ctx.stroke();
+        }
+        // expansion joint where the slab meets the garage
+        ctx.strokeStyle = 'rgba(28,30,32,' + (0.55 * finish).toFixed(3) + ')';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        p = qp(0.01, 0.02); ctx.moveTo(p[0], p[1]);
+        p = qp(0.99, 0.02); ctx.lineTo(p[0], p[1]);
+        ctx.stroke();
+        ctx.strokeStyle = COL.joint; ctx.lineCap = 'round';
+        for (j = 0; j < 3; j++) {
+          var jv = 0.25 + j * 0.25;
+          var jp = clamp((finish - (0.35 + j * 0.18)) / 0.27, 0, 1);
+          if (jp <= 0) continue;
+          ctx.lineWidth = lerp(1.6, 2.8, jv);
+          ctx.beginPath();
+          p = qp(0.015, jv); ctx.moveTo(p[0], p[1]);
+          p = qp(0.015 + 0.97 * jp, jv); ctx.lineTo(p[0], p[1]);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+
+      // screed board + excess roll (above the slab, unclipped)
+      if (screed > 0 && screed < 1) {
+        var wob = Math.sin(screed * 34) * 0.012;          // scroll-driven jitter
+        var s1 = qp(clamp(sU + wob, 0, 1), -0.03);
+        var s2 = qp(clamp(sU - wob, 0, 1), 1.03);
+        var m1 = qp(clamp(sU + 0.035, 0, 1), 0.02);
+        var m2 = qp(clamp(sU + 0.035, 0, 1), 0.98);
+        ctx.strokeStyle = 'rgba(60,64,68,.8)'; ctx.lineWidth = 9; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(m1[0], m1[1]); ctx.lineTo(m2[0], m2[1]); ctx.stroke();
+        ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 8;   // board shadow
+        ctx.beginPath(); ctx.moveTo(s1[0] + 4, s1[1] + 5); ctx.lineTo(s2[0] + 4, s2[1] + 5); ctx.stroke();
+        ctx.strokeStyle = ACCENT; ctx.lineWidth = 7;
+        ctx.beginPath(); ctx.moveTo(s1[0], s1[1]); ctx.lineTo(s2[0], s2[1]); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(s1[0], s1[1]); ctx.lineTo(s2[0], s2[1]); ctx.stroke();
+      }
+    }
+
+    // 8 ▸ finished edge
+    if (done > 0) {
+      quadPath(ctx);
+      ctx.strokeStyle = 'rgba(230,232,234,' + (0.5 * done).toFixed(3) + ')';
+      ctx.lineWidth = 2; ctx.stroke();
+    }
+
+    // 3 ▸ form boards + stakes (over the slab edges), with shadows + grain
+    var fA = forms * (1 - formGone);
+    if (fA > 0.01) {
+      ctx.globalAlpha = fA;
+      var slide = (1 - forms) * 120 + formGone * 140;
+      var edges = [
+        { a: qp(0, 0), b: qp(0, 1), dx: -slide, dy: 0, sk: 0 },
+        { a: qp(1, 0), b: qp(1, 1), dx:  slide, dy: 0, sk: 1 },
+        { a: qp(0, 0), b: qp(1, 0), dx: 0, dy: -slide * 0.7, sk: 2 }
+      ];
+      ctx.lineCap = 'butt';
+      for (j = 0; j < edges.length; j++) {
+        var e = edges[j];
+        var ax = e.a[0] + e.dx, ay = e.a[1] + e.dy, bx = e.b[0] + e.dx, by = e.b[1] + e.dy;
+        ctx.strokeStyle = 'rgba(0,0,0,.20)'; ctx.lineWidth = 9;   // cast shadow
+        ctx.beginPath(); ctx.moveTo(ax + 6, ay + 5); ctx.lineTo(bx + 6, by + 5); ctx.stroke();
+        ctx.strokeStyle = mixHex(ACCENT, '#000000', 0.25); ctx.lineWidth = 10;
+        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+        ctx.strokeStyle = ACCENT; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.moveTo(ax, ay - 3); ctx.lineTo(bx, by - 3); ctx.stroke();
+        ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 1;   // wood grain
+        for (k = 0; k < 2; k++) {
+          var gy = k === 0 ? 1.5 : 3.5;
+          ctx.beginPath();
+          ctx.moveTo(lerp(ax, bx, 0.06), lerp(ay, by, 0.06) + gy);
+          ctx.lineTo(lerp(ax, bx, 0.94), lerp(ay, by, 0.94) + gy);
+          ctx.stroke();
+        }
+        for (k = 1; k <= 3; k++) {                                // stakes
+          var tt = k / 4;
+          var sxk = lerp(ax, bx, tt) + (e.sk === 0 ? -9 : e.sk === 1 ? 9 : 0);
+          var syk = lerp(ay, by, tt) + (e.sk === 2 ? -8 : 0);
+          var pop = ease(clamp((forms - (0.5 + k * 0.12)) / 0.25, 0, 1));
+          if (pop <= 0) continue;
+          ctx.fillStyle = 'rgba(0,0,0,.2)';
+          ctx.fillRect(sxk - 1, syk - 1, 6, 3);
+          ctx.fillStyle = COL.stake; ctx.fillRect(sxk - 2.5, syk - 20 * pop, 5, 20 * pop);
+          ctx.fillStyle = ACCENT;    ctx.fillRect(sxk - 2.5, syk - 20 * pop, 5, 4 * pop);
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    /* dust motes over the pit during excavation (atmospheric) */
+    var dustA = 1 - ease(segw(t, [0.05, 0.12]));
+    if (dustA > 0.02) {
+      for (j = 0; j < dust.length; j++) {
+        var d = dust[j];
+        var dxm = Math.sin(ms * 0.0005 + d.p) * 8;
+        var dym = -(((ms * 0.012 * d.s) + d.p * 40) % 50);
+        ctx.fillStyle = 'rgba(190,175,150,' + (0.22 * dustA * (0.5 + 0.5 * Math.sin(d.p + ms * 0.001))).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(d.x + dxm, d.y + dym, 1.6 * d.s, 0, 6.2832); ctx.fill();
+      }
+    }
+
+    /* grass blades swaying at the lawn edges (atmospheric) */
+    ctx.strokeStyle = 'rgba(107,138,86,.85)'; ctx.lineWidth = 1.3; ctx.lineCap = 'round';
+    for (j = 0; j < grass.length; j++) {
+      var gr = grass[j];
+      var sway = Math.sin(ms * 0.0011 + gr.p) * 1.8;
+      ctx.beginPath();
+      ctx.moveTo(gr.x, gr.y); ctx.lineTo(gr.x + sway, gr.y - gr.h);
+      ctx.moveTo(gr.x + 2.4, gr.y); ctx.lineTo(gr.x + 2.4 + sway * .7, gr.y - gr.h * .75);
+      ctx.stroke();
+    }
+
+    /* 5 ▸ concrete truck + chute + stream */
+    var tx = lerp(-470, 26, truckIn) - truckOut * 540;
+    if (tx > -460 && truckIn > 0) {
+      var by = 336;
+      ctx.fillStyle = 'rgba(0,0,0,.22)';                           // shadow
+      ctx.beginPath(); ctx.ellipse(tx + 180, by + 2, 180, 12, 0, 0, 6.2832); ctx.fill();
+      ctx.fillStyle = '#22262a'; ctx.fillRect(tx + 8, by - 36, 330, 18);     // chassis
+      var wheels = [tx + 62, tx + 152, tx + 282];
+      for (j = 0; j < wheels.length; j++) {
+        ctx.fillStyle = '#1b1e21'; ctx.beginPath(); ctx.arc(wheels[j], by - 12, 16, 0, 6.2832); ctx.fill();
+        ctx.fillStyle = '#54595e'; ctx.beginPath(); ctx.arc(wheels[j], by - 12, 6.5, 0, 6.2832); ctx.fill();
+      }
+      ctx.fillStyle = '#d5d8da'; ctx.fillRect(tx + 8, by - 96, 74, 60);      // cab
+      ctx.fillStyle = COL.glass; ctx.fillRect(tx + 16, by - 88, 44, 24);
+      ctx.fillStyle = ACCENT;    ctx.fillRect(tx + 8, by - 46, 74, 8);
+      ctx.save();                                                             // drum
+      ctx.translate(tx + 200, by - 76); ctx.rotate(-0.07);
+      ctx.beginPath(); ctx.ellipse(0, 0, 104, 42, 0, 0, 6.2832);
+      ctx.fillStyle = '#c7cacc'; ctx.fill();
+      ctx.clip();
+      ctx.strokeStyle = ACCENT; ctx.lineWidth = 7;
+      var ph = (pour * 26 * 3) % 26;                                          // scroll-driven spin
+      for (j = -6; j < 6; j++) {
+        ctx.beginPath();
+        ctx.moveTo(j * 26 + ph - 20, 46); ctx.lineTo(j * 26 + ph + 20, -46);
+        ctx.stroke();
+      }
+      ctx.restore();
+      ctx.fillStyle = '#8f9498';                                             // rear funnel
+      ctx.beginPath(); ctx.moveTo(tx + 296, by - 90); ctx.lineTo(tx + 332, by - 78);
+      ctx.lineTo(tx + 326, by - 58); ctx.lineTo(tx + 296, by - 66); ctx.closePath(); ctx.fill();
+
+      // chute unfolds toward the slab
+      if (chuteEx > 0.01) {
+        var ex = lerp(tx + 344, 518, chuteEx), ey = lerp(by - 60, 308, chuteEx);
+        ctx.lineCap = 'butt';
+        ctx.strokeStyle = 'rgba(0,0,0,.22)'; ctx.lineWidth = 14;
+        ctx.beginPath(); ctx.moveTo(tx + 326, by - 62); ctx.lineTo(ex + 5, ey + 6); ctx.stroke();
+        ctx.strokeStyle = COL.steel; ctx.lineWidth = 13;
+        ctx.beginPath(); ctx.moveTo(tx + 326, by - 68); ctx.lineTo(ex, ey); ctx.stroke();
+        ctx.strokeStyle = ACCENT; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(tx + 326, by - 74); ctx.lineTo(ex, ey - 5); ctx.stroke();
+        // pour stream — scroll-driven wiggle, freezes with the scroll
+        if (pour > 0.02 && pour < 0.97 && chuteEx > 0.9) {
+          var wig = Math.sin(pour * 46) * 4;
+          ctx.strokeStyle = COL.stream; ctx.lineWidth = 10; ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(ex + 3, ey + 4);
+          ctx.quadraticCurveTo(ex + 8 + wig, ey + 14, ex + 11, 328);
+          ctx.stroke();
+          ctx.fillStyle = COL.stream;
+          ctx.beginPath(); ctx.ellipse(ex + 12, 330, 14 + Math.abs(wig), 4.5, 0, 0, 6.2832); ctx.fill();
+        }
+      }
+    }
+
+    /* 6 ▸ worker pulling the screed (far side, in front of the garage) */
+    if (workerA > 0.01) {
+      var wp = qp(clamp(sU, 0, 1), -0.09);
+      var wx = wp[0], wy = wp[1] + 2;
+      var stride = Math.sin(sU * 28) * 4;
+      ctx.globalAlpha = workerA;
+      ctx.fillStyle = 'rgba(0,0,0,.25)';
+      ctx.beginPath(); ctx.ellipse(wx + 4, wy + 1, 13, 3.4, 0, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = '#2f3438'; ctx.lineWidth = 3.4; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(wx, wy - 18); ctx.lineTo(wx - 4 + stride, wy); ctx.stroke();   // legs
+      ctx.beginPath(); ctx.moveTo(wx, wy - 18); ctx.lineTo(wx + 5 - stride, wy); ctx.stroke();
+      ctx.strokeStyle = ACCENT; ctx.lineWidth = 5;                                              // vest torso
+      ctx.beginPath(); ctx.moveTo(wx, wy - 18); ctx.lineTo(wx + 2, wy - 33); ctx.stroke();
+      ctx.strokeStyle = '#2f3438'; ctx.lineWidth = 3;                                           // arms → board
+      ctx.beginPath(); ctx.moveTo(wx + 2, wy - 30); ctx.lineTo(wx + 9, wy - 12); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(wx + 2, wy - 28); ctx.lineTo(wx + 11, wy - 14); ctx.stroke();
+      ctx.fillStyle = '#c9a17c';                                                                // head
+      ctx.beginPath(); ctx.arc(wx + 2, wy - 39, 4.6, 0, 6.2832); ctx.fill();
+      ctx.fillStyle = ACCENT;                                                                   // hard hat
+      ctx.beginPath(); ctx.arc(wx + 2, wy - 40.5, 4.8, Math.PI, 0); ctx.fill();
+      ctx.fillRect(wx - 4.5, wy - 40.5, 13, 1.8);
+      ctx.globalAlpha = 1;
+    }
+
+    /* cross-section face — the signature cutaway (dirt→gravel→concrete) */
+    var fx = Q.nearL, fw = Q.nearR - Q.nearL, fy = Q.nearY, fh = 46;
+    ctx.fillStyle = COL.voidC; ctx.fillRect(fx, fy, fw, fh);
+    ctx.fillStyle = COL.dirtX; ctx.fillRect(fx, fy + 22, fw, fh - 22);
+    var gH = 12 * gravel;
+    if (gH > 0) { ctx.fillStyle = COL.gravelX; ctx.fillRect(fx, fy + 22 - gH, fw, gH); }
+    var cH = 10 * pour;
+    if (cH > 0) {
+      ctx.fillStyle = mixHex(COL.wet, COL.cured, finish);
+      ctx.fillRect(fx, fy + 10 - cH, fw, cH);
+    }
+    ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 2;
+    ctx.strokeRect(fx + 1, fy + 1, fw - 2, fh - 2);
+
+    /* golden-hour warm wash over the whole scene */
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (g > 0.01) {
+      ctx.fillStyle = 'rgba(255,150,60,' + (0.09 * g).toFixed(3) + ')';
+      ctx.fillRect(0, 0, cw, ch);
+    }
+    /* horizon haze + vignette for depth */
+    var hz = fitOY + 246 * fitS;
+    var haze = ctx.createLinearGradient(0, hz - 26, 0, hz + 40);
+    haze.addColorStop(0, 'rgba(255,255,255,0)');
+    haze.addColorStop(.5, 'rgba(235,240,244,.07)');
+    haze.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = haze; ctx.fillRect(0, hz - 26, cw, 66);
+    var vg = ctx.createRadialGradient(cw / 2, ch * .46, Math.min(cw, ch) * .42, cw / 2, ch * .52, Math.max(cw, ch) * .78);
+    vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.30)');
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch);
+  }
+
+  /* ── HUD / controls ──────────────────────────────────────────── */
+  var S = CFG.STAGES, chips = [], checks = [];
+  for (i = 0; i < S.length; i++) {
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.textContent = String(i + 1);
+    btn.setAttribute('aria-label', 'Stage ' + S[i].num + ': ' + S[i].name);
+    (function (idx, b) {
+      b.addEventListener('click', function () { goTo(S[idx].t + 0.015); });
+      function showTip() {
+        tipEl.innerHTML = '<strong>' + S[idx].num + ' — ' + S[idx].name + '</strong><em>' + S[idx].tip + '</em>';
+        tipEl.style.left = (b.offsetLeft + b.offsetWidth / 2) + 'px';
+        tipEl.classList.add('on');
+      }
+      function hideTip() { tipEl.classList.remove('on'); }
+      b.addEventListener('mouseenter', showTip);
+      b.addEventListener('mouseleave', hideTip);
+      b.addEventListener('focus', showTip);
+      b.addEventListener('blur', hideTip);
+    })(i, btn);
+    chipsEl.appendChild(btn); chips.push(btn);
+
+    var row = document.createElement('div');
+    row.className = 'ck'; row.innerHTML = '<b>\u2713</b>' + S[i].name;
+    checkEl.appendChild(row); checks.push(row);
+  }
+
+  var stageIdx = -1;
+  function updateHUD(t) {
+    var idx = 0, n;
+    for (n = S.length - 1; n >= 0; n--) { if (t >= S[n].t) { idx = n; break; } }
+    if (idx !== stageIdx) {
+      stageIdx = idx;
+      elNum.textContent = S[idx].num;
+      elName.textContent = S[idx].name;
+    }
+    var pct = (t * 100);
+    elFill.style.width = pct.toFixed(2) + '%';
+    elThumb.style.left = pct.toFixed(2) + '%';
+    slider.setAttribute('aria-valuenow', String(Math.round(pct)));
+    slider.setAttribute('aria-valuetext', S[idx].name + ', ' + Math.round(pct) + '%');
+    elCue.style.opacity = t > 0.02 ? '0' : '1';
+    for (n = 0; n < S.length; n++) {
+      var end = n + 1 < S.length ? S[n + 1].t : 1;
+      var isDone = t >= end - 0.002, isAct = n === idx;
+      checks[n].className = 'ck' + (isDone ? ' done' : '') + (isAct ? ' active' : '');
+      chips[n].className = (isAct ? 'active' : (isDone ? 'done' : ''));
+    }
+  }
+
+  /* ── sizing / retina ─────────────────────────────────────────── */
+  function resize() {
+    var r = canvas.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.max(1, Math.round(r.width * dpr));
+    var h = Math.max(1, Math.round(r.height * dpr));
+    if (w !== canvas.width || h !== canvas.height) {
+      canvas.width = w; canvas.height = h;
+      var rs = clamp(Math.min(w / W, h / H), 0.5, 2.5);
+      if (Math.abs(rs - backdropScale) > 0.15 || !backdropScale) renderBackdrops(rs);
+    }
+  }
+  window.addEventListener('resize', resize, { passive: true });
+  window.addEventListener('orientationchange', resize, { passive: true });
+
+  /* ── reduced motion: one static, finished frame ──────────────── */
+  if (reduced) {
+    resize(); draw(1, 0); updateHUD(1);
+    window.addEventListener('resize', function () { resize(); draw(1, 0); }, { passive: true });
+    return;
+  }
+
+  /* ── timeline: scroll is the single source of truth ──────────── */
+  function room()     { return track.getBoundingClientRect().height - window.innerHeight; }
+  function trackTop() { return track.getBoundingClientRect().top + window.scrollY; }
+  function scrollTarget() {
+    var rect = track.getBoundingClientRect();
+    var rm = rect.height - window.innerHeight;
+    if (rm <= 0) return 0;
+    return clamp(-rect.top / rm, 0, 1);
+  }
+  // chips / keys / drag all just move the scroll position
+  function goTo(t, instant) {
+    var top = trackTop() + clamp(t, 0, 1) * Math.max(1, room());
+    if (instant) window.scrollTo(0, top);
+    else window.scrollTo({ top: top, behavior: 'smooth' });
+  }
+
+  // draggable timeline (mouse + touch via pointer events)
+  var dragging = false;
+  function dragTo(clientX) {
+    var r = slider.getBoundingClientRect();
+    goTo(clamp((clientX - r.left) / r.width, 0, 1), true);
+  }
+  slider.addEventListener('pointerdown', function (e) {
+    dragging = true; slider.setPointerCapture(e.pointerId); dragTo(e.clientX); e.preventDefault();
+  });
+  slider.addEventListener('pointermove', function (e) { if (dragging) dragTo(e.clientX); });
+  slider.addEventListener('pointerup',   function () { dragging = false; });
+  slider.addEventListener('pointercancel', function () { dragging = false; });
+  // keyboard access
+  slider.addEventListener('keydown', function (e) {
+    var t = scrollTarget(), step = 0.02, big = 0.125, used = true;
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowUp':   goTo(t + step, true); break;
+      case 'ArrowLeft':  case 'ArrowDown': goTo(t - step, true); break;
+      case 'PageUp':   goTo(t + big, true); break;
+      case 'PageDown': goTo(t - big, true); break;
+      case 'Home': goTo(0, true); break;
+      case 'End':  goTo(1, true); break;
+      default: used = false;
+    }
+    if (used) e.preventDefault();
+  });
+
+  // cursor parallax — cosmetic tilt only, fine pointers only
+  var tParX = 0, tParY = 0;
+  if (finePtr) {
+    stageEl.addEventListener('mousemove', function (e) {
+      var r = stageEl.getBoundingClientRect();
+      tParX = ((e.clientX - r.left) / r.width - 0.5) * 2;
+      tParY = ((e.clientY - r.top) / r.height - 0.5) * 2;
+    });
+    stageEl.addEventListener('mouseleave', function () { tParX = 0; tParY = 0; });
+  }
+
+  /* ── main loop: ease shown → target; ambient time for atmosphere ─ */
+  var shown = 0;
+  function tick(ms) {
+    var target = scrollTarget();
+    var d = target - shown;
+    if (Math.abs(d) > 0.0004) shown += d * CFG.EASE_K;
+    else shown = target;
+    parX += (tParX - parX) * 0.06;
+    parY += (tParY - parY) * 0.06;
+    resize();
+    draw(shown, ms);
+    updateHUD(shown);
+    requestAnimationFrame(tick);
+  }
+  resize();
+  requestAnimationFrame(tick);
+})();
+</script>
+</div>
+</div>
+
+
 <!-- SERVICE AREA -->
 <section id="service-area">
   <div class="section-tag">Where We Work</div>
@@ -771,6 +2350,1218 @@
     </div>
   </div>
 </section>
+
+<!-- FENCE BUILD SCENE (scroll-driven) -->
+<section id="fence-feature" class="feature-intro">
+  <div class="section-tag">In Motion</div>
+  <h2>From <em>Post</em> to Privacy</h2>
+  <p class="section-intro">The whole perimeter, one property: layout, post holes, footings, rails, pickets, gate, and stain.</p>
+</section>
+<div class="feature-mount">
+<div id="cdb-fence">
+<style>
+  #cdb-fence {
+    /* ── BRAND TOKENS — edit here ─────────────────────────────── */
+    --cdbf-accent:       #ff6a00;
+    --cdbf-bg:           #141618;
+    --cdbf-ink:          #c6cacd;
+    --cdbf-ink-dim:      #6d7175;
+    --cdbf-panel:        rgba(18, 20, 22, .72);
+    --cdbf-font-display: 'Anton', 'Arial Narrow', sans-serif;
+    --cdbf-font-body:    'Inter', system-ui, sans-serif;
+    --cdbf-track-h:      560vh;   /* SCRUB SPEED: taller = slower  */
+    /* ─────────────────────────────────────────────────────────── */
+    background: var(--cdbf-bg);
+    color: var(--cdbf-ink);
+    font-family: var(--cdbf-font-body);
+  }
+  #cdb-fence, #cdb-fence * { box-sizing: border-box; }
+
+  #cdb-fence .cdb-track { height: var(--cdbf-track-h); position: relative; }
+  #cdb-fence .cdb-stage {
+    position: sticky; top: 0;
+    height: 100vh; height: 100svh;
+    width: 100%; overflow: hidden;
+  }
+  #cdb-fence canvas.cdb-canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  }
+
+  #cdb-fence .cdb-hud {
+    position: absolute; left: clamp(14px, 4vw, 44px); bottom: clamp(64px, 9vh, 84px);
+    pointer-events: none; -webkit-user-select: none; user-select: none;
+  }
+  #cdb-fence .cdb-num {
+    font-family: var(--cdbf-font-display);
+    font-size: clamp(48px, 8.5vw, 96px); line-height: .85;
+    color: transparent; -webkit-text-stroke: 2px rgba(198,202,205,.55);
+    text-shadow: 0 2px 14px rgba(0,0,0,.35);
+  }
+  #cdb-fence .cdb-name {
+    font-family: var(--cdbf-font-display);
+    font-size: clamp(20px, 3vw, 34px); letter-spacing: .04em;
+    text-transform: uppercase; color: var(--cdbf-accent); margin-top: 4px;
+    text-shadow: 0 1px 8px rgba(0,0,0,.5);
+  }
+  #cdb-fence .cdb-slider {
+    pointer-events: auto; touch-action: none; cursor: ew-resize;
+    width: clamp(150px, 24vw, 240px); height: 18px;
+    margin-top: 12px; position: relative; outline: none;
+  }
+  #cdb-fence .cdb-slider::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 4px;
+    background: rgba(120,124,128,.35);
+  }
+  #cdb-fence .cdb-slider .cdb-fill {
+    position: absolute; left: 0; top: 7px; height: 4px; width: 0%;
+    background: var(--cdbf-accent);
+  }
+  #cdb-fence .cdb-slider .cdb-thumb {
+    position: absolute; top: 3px; width: 12px; height: 12px; left: 0;
+    background: var(--cdbf-accent); transform: translateX(-6px);
+    box-shadow: 0 0 0 3px rgba(0,0,0,.35);
+  }
+  #cdb-fence .cdb-slider:focus-visible::before { outline: 2px solid var(--cdbf-accent); outline-offset: 4px; }
+
+  #cdb-fence .cdb-check {
+    position: absolute; top: clamp(12px, 3vh, 28px); right: clamp(12px, 3vw, 30px);
+    background: var(--cdbf-panel); padding: 10px 14px;
+    font: 600 11px/1.85 var(--cdbf-font-body); letter-spacing: .06em;
+    text-transform: uppercase; color: var(--cdbf-ink-dim);
+    -webkit-user-select: none; user-select: none; pointer-events: none;
+    backdrop-filter: blur(2px);
+  }
+  #cdb-fence .cdb-check .ck b { display: inline-block; width: 16px; color: transparent; font-weight: 600; }
+  #cdb-fence .cdb-check .ck.done     { color: var(--cdbf-ink); }
+  #cdb-fence .cdb-check .ck.done b   { color: var(--cdbf-accent); }
+  #cdb-fence .cdb-check .ck.active   { color: #fff; }
+  #cdb-fence .cdb-check .ck.active b { color: var(--cdbf-accent); }
+
+  #cdb-fence .cdb-chips {
+    position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+    display: flex; gap: 6px; padding: 6px 8px; background: var(--cdbf-panel);
+    backdrop-filter: blur(2px);
+  }
+  #cdb-fence .cdb-chips button {
+    all: unset; cursor: pointer; width: 26px; height: 26px; text-align: center;
+    font: 400 13px/26px var(--cdbf-font-display); color: var(--cdbf-ink-dim);
+    background: #202427; border: 1px solid #33383c;
+  }
+  #cdb-fence .cdb-chips button:hover { color: var(--cdbf-ink); border-color: var(--cdbf-ink-dim); }
+  #cdb-fence .cdb-chips button.done   { color: var(--cdbf-accent); }
+  #cdb-fence .cdb-chips button.active {
+    color: #101214; background: var(--cdbf-accent); border-color: var(--cdbf-accent);
+  }
+  #cdb-fence .cdb-chips button:focus-visible { outline: 2px solid var(--cdbf-accent); outline-offset: 2px; }
+  #cdb-fence .cdb-tip {
+    position: absolute; bottom: calc(100% + 10px); left: 0;
+    transform: translateX(-50%); white-space: nowrap;
+    background: #101214; border: 1px solid #33383c; padding: 7px 10px;
+    font: 600 11px/1.4 var(--cdbf-font-body); color: var(--cdbf-ink);
+    opacity: 0; transition: opacity .15s ease; pointer-events: none;
+  }
+  #cdb-fence .cdb-tip em { display: block; font-style: normal; color: var(--cdbf-ink-dim); font-weight: 400; }
+  #cdb-fence .cdb-tip.on { opacity: 1; }
+
+  #cdb-fence .cdb-cue {
+    position: absolute; left: 50%; bottom: 58px; transform: translateX(-50%);
+    font: 600 10px/1 var(--cdbf-font-body); letter-spacing: .3em;
+    text-transform: uppercase; color: var(--cdbf-ink);
+    text-shadow: 0 1px 6px rgba(0,0,0,.6);
+    transition: opacity .4s ease; pointer-events: none; white-space: nowrap;
+  }
+  #cdb-fence .cdb-cue::after {
+    content: ""; display: block; width: 1px; height: 22px;
+    background: var(--cdbf-accent); margin: 8px auto 0;
+  }
+
+  @media (max-width: 600px) {
+    #cdb-fence .cdb-check { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #cdb-fence .cdb-track { height: auto; }
+    #cdb-fence .cdb-stage { position: relative; }
+    #cdb-fence .cdb-cue, #cdb-fence .cdb-chips, #cdb-fence .cdb-slider { display: none; }
+  }
+</style>
+
+  <div class="cdb-track">
+    <div class="cdb-stage" id="cdbfStage">
+      <canvas class="cdb-canvas" id="cdbfCanvas" role="img"
+        aria-label="Elevated illustration of a wood privacy fence being built around the whole property of a two-story house: layout, post holes, posts set in concrete, rails, pickets, gate, and stain"></canvas>
+
+      <div class="cdb-check" id="cdbfCheck" aria-hidden="true"></div>
+
+      <div class="cdb-hud">
+        <div class="cdb-num"  id="cdbfNum"  aria-hidden="true">01</div>
+        <div class="cdb-name" id="cdbfName" aria-hidden="true">Layout</div>
+        <div class="cdb-slider" id="cdbfSlider" role="slider" tabindex="0"
+             aria-label="Build timeline" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span class="cdb-fill"  id="cdbfFill"></span>
+          <span class="cdb-thumb" id="cdbfThumb"></span>
+        </div>
+      </div>
+
+      <div class="cdb-chips" id="cdbfChips" aria-label="Jump to build stage">
+        <div class="cdb-tip" id="cdbfTip"></div>
+      </div>
+
+      <div class="cdb-cue" id="cdbfCue">Scroll to build</div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ════════════════ TUNING KNOBS ════════════════ */
+  var CFG = {
+    EASE_K: 0.14,
+    PARTICLE_DENSITY: 1,
+    ZOOM: 0.07,
+    STAIN: '#8a5330',
+    SKY: {
+      morning: ['#8fb8d8', '#d9e7ef'],
+      golden:  ['#e89a55', '#f6dcae']
+    },
+    FENCE: {                     // perimeter layout
+      x0: 120, spacing: 96, frontPosts: 9,  // front run: 9 posts, x 120..888
+      sideBays: 4, backBays: 5,             // bays on each side / across the back
+      sideLen: 480, backLen: 768,           // ground lengths (for build pacing)
+      gateBay: 3,                           // front bay under the walkway
+      grade: 442,                           // front ground line (top of cutaway)
+      fenceH: 116, postH: 124,              // heights above grade (unscaled)
+      railHs: [14, 54, 94],                 // rail heights above grade
+      holeDepth: 43, holeW: 24
+    },
+    STAGES: [
+      { t: 0.00, num: '01', name: 'Layout',       tip: 'String line rings the property' },
+      { t: 0.08, num: '02', name: 'Post holes',   tip: 'Auger bores around the loop' },
+      { t: 0.22, num: '03', name: 'Set posts',    tip: 'Dropped, plumbed, aligned' },
+      { t: 0.34, num: '04', name: 'Footings',     tip: 'Concrete anchors each post' },
+      { t: 0.46, num: '05', name: 'Rails',        tip: 'Stringers tie the frame' },
+      { t: 0.58, num: '06', name: 'Pickets',      tip: 'Boards go up one by one' },
+      { t: 0.76, num: '07', name: 'Gate & caps',  tip: 'Hang the gate, cap the posts' },
+      { t: 0.88, num: '08', name: 'Stain & done', tip: 'Sealed around the whole yard' }
+    ],
+    TW: {
+      layout:  [0.015, 0.075], dig:    [0.08, 0.215],
+      posts:   [0.22, 0.335],  foot:   [0.34, 0.455],
+      rails:   [0.46, 0.575],  pickets:[0.585, 0.755],
+      gate:    [0.76, 0.845],  caps:   [0.82, 0.895],
+      latch:   [0.845, 0.875], stain:  [0.885, 0.965],
+      stringOff: [0.335, 0.37],
+      cure:    [0.44, 0.58],
+      truckIn: [0.415, 0.455], truckOut: [0.50, 0.545],
+      unload:  [0.44, 0.47],   lumberUse: [0.47, 0.755],
+      digWork: [0.085, 0.22],  pickWork: [0.585, 0.758],
+      golden:  [0.55, 1.00],   glow:     [0.86, 1.00]
+    }
+  };
+  /* ═══════════════════════════════════════════════ */
+
+  var root    = document.getElementById('cdb-fence');
+  var track   = root.querySelector('.cdb-track');
+  var stageEl = document.getElementById('cdbfStage');
+  var canvas  = document.getElementById('cdbfCanvas');
+  var ctx     = canvas.getContext('2d');
+  var elNum   = document.getElementById('cdbfNum');
+  var elName  = document.getElementById('cdbfName');
+  var elCue   = document.getElementById('cdbfCue');
+  var slider  = document.getElementById('cdbfSlider');
+  var elFill  = document.getElementById('cdbfFill');
+  var elThumb = document.getElementById('cdbfThumb');
+  var chipsEl = document.getElementById('cdbfChips');
+  var tipEl   = document.getElementById('cdbfTip');
+  var checkEl = document.getElementById('cdbfCheck');
+
+  var reduced  = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var finePtr  = window.matchMedia('(pointer: fine)').matches;
+  var smallScr = window.matchMedia('(max-width: 640px)').matches;
+  var PD       = CFG.PARTICLE_DENSITY * (smallScr ? 0.5 : 1);
+
+  /* ── helpers ─────────────────────────────────────────────────── */
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function lerp(a, b, t)  { return a + (b - a) * t; }
+  function segw(t, w)     { return clamp((t - w[0]) / (w[1] - w[0]), 0, 1); }
+  function ease(t)        { return t * t * (3 - 2 * t); }
+  function stag(p, i, n, span) {
+    var s0 = (n > 1 ? i / (n - 1) : 0) * (1 - span);
+    return clamp((p - s0) / span, 0, 1);
+  }
+  function hx(c) { var n = parseInt(c.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  function mixHex(c1, c2, t) {
+    var a = hx(c1), b = hx(c2);
+    return 'rgb(' + Math.round(lerp(a[0], b[0], t)) + ',' + Math.round(lerp(a[1], b[1], t)) + ',' + Math.round(lerp(a[2], b[2], t)) + ')';
+  }
+  function mulberry32(s) {
+    return function () {
+      s |= 0; s = s + 0x6D2B79F5 | 0;
+      var x = Math.imul(s ^ s >>> 15, 1 | s);
+      x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x;
+      return ((x ^ x >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ── elevated-view ground projection ─────────────────────────── */
+  // z: 0 = front fence line … 1 = back fence line (behind the house)
+  var W = 1000, H = 560, CAMX = 500, CAMY = 300;
+  var F = CFG.FENCE, GRADE = F.grade, FH = F.fenceH, PH = F.postH;
+  function gp(gx, z) {          // → [screenX, screenY(ground), scale]
+    var ze = Math.pow(z, 0.8);
+    return [500 + (gx - 500) * lerp(1, 0.62, ze),
+            GRADE - 206 * ze,
+            lerp(1, 0.42, ze)];
+  }
+  // the house backdrop is drawn scaled 0.85 around (510,300) → base 272
+  function hTx(x) { return (x - 510) * 0.85 + 510; }
+  function hTy(y) { return (y - 300) * 0.85 + 272; }
+
+  /* ── perimeter: 21 posts around the loop, front-left first ───── */
+  var PLIST = [], LOOP = 0;
+  (function buildLoop() {
+    var d = 0, k;
+    for (k = 0; k < F.frontPosts; k++) {
+      PLIST.push({ gx: F.x0 + k * F.spacing, z: 0, d: d });
+      if (k < F.frontPosts - 1) d += F.spacing;
+    }
+    for (k = 1; k <= F.sideBays; k++) {                      // right side, going back
+      d += F.sideLen / F.sideBays;
+      PLIST.push({ gx: F.x0 + (F.frontPosts - 1) * F.spacing, z: k / F.sideBays, d: d });
+    }
+    for (k = 1; k <= F.backBays; k++) {                      // back, right → left
+      d += F.backLen / F.backBays;
+      PLIST.push({ gx: F.x0 + (F.frontPosts - 1) * F.spacing - k * F.backLen / F.backBays, z: 1, d: d });
+    }
+    for (k = 1; k < F.sideBays; k++) {                       // left side, coming forward
+      d += F.sideLen / F.sideBays;
+      PLIST.push({ gx: F.x0, z: 1 - k / F.sideBays, d: d });
+    }
+    LOOP = d + F.sideLen / F.sideBays;                       // closing bay → post 0
+  })();
+  var NP = PLIST.length;
+  function bayLen(b) { return b < NP - 1 ? PLIST[b + 1].d - PLIST[b].d : LOOP - PLIST[b].d; }
+  // point along bay b at fraction u, hAbove ground (unscaled units)
+  function bayPt(b, u, hAbove) {
+    var A = PLIST[b], B = PLIST[(b + 1) % NP];
+    var pa = gp(A.gx, A.z), pb = gp(B.gx, B.z);
+    var sc = lerp(pa[2], pb[2], u);
+    return [lerp(pa[0], pb[0], u), lerp(pa[1], pb[1], u) - hAbove * sc, sc];
+  }
+  function loopPt(dist, hAbove) {
+    dist = ((dist % LOOP) + LOOP) % LOOP;
+    for (var b = 0; b < NP; b++) {
+      var bl = bayLen(b);
+      if (dist <= PLIST[b].d + bl || b === NP - 1) {
+        return bayPt(b, clamp((dist - PLIST[b].d) / bl, 0, 1), hAbove);
+      }
+    }
+    return bayPt(0, 0, hAbove);
+  }
+  var FENCE_L = gp(F.x0, 0)[0], FENCE_R = gp(F.x0 + (F.frontPosts - 1) * F.spacing, 0)[0];
+  var GATE_X0 = PLIST[F.gateBay].gx, GATE_X1 = PLIST[F.gateBay + 1].gx;
+
+  var ACCENT = getComputedStyle(root).getPropertyValue('--cdbf-accent').trim() || '#ff6a00';
+  var COL = {
+    lawn: '#5d7a4c', treeline: '#3b4a39',
+    topsoil: '#453b31', subsoil: '#5a4a38', deep: '#241f1a', hole: '#14110e',
+    postRaw: '#a98a5f', railRaw: '#b3946a', picketRaw: '#c9ab7e', picketRaw2: '#b99a6e',
+    capRaw: '#8f7a55',
+    wet: '#63676c', cured: '#a9adb0', gravelX: '#6a6d70',
+    steel: '#3a3f45', stake: '#26292c', hw: '#2b2f33',
+    walk: '#a7a9ab',
+    siding: '#9aa4ab', roof: '#3d4247', roofBack: '#4a5056', glass: '#2e3f4a', trim: '#d7dadc',
+    canopy: '#46603e', canopyLit: '#587a4a', trunk: '#4a3b2c'
+  };
+
+  /* ── seeded data ─────────────────────────────────────────────── */
+  var rnd = mulberry32(20260707), i, j, b;
+  var dust = [], grass = [], stones = [], flowers = [];
+  for (i = 0; i < 20 * PD; i++) dust.push({ dx: (rnd() - .5) * 60, dy: -rnd() * 46, s: .4 + rnd() * .8, p: rnd() * 6.28 });
+  for (i = 0; i < 60 * PD; i++) grass.push({ x: 60 + rnd() * 880, y: 244 + rnd() * 188, h: 5 + rnd() * 6, p: rnd() * 6.28 });
+  for (i = 0; i < 46; i++) stones.push({ x: rnd() * 1080 - 40, y: 460 + rnd() * 42, r: 1 + rnd() * 2.4, s: rnd() });
+  for (i = 0; i < 7; i++)  flowers.push({ x: 336 + rnd() * 94, y: 274 + rnd() * 8, c: rnd() });
+
+  var postPiles = [];
+  for (i = 0; i < NP; i++) {
+    var dots = [];
+    for (j = 0; j < 7; j++) dots.push({ dx: (rnd() - .5) * .7, dy: rnd() * .7, r: 1.2 + rnd() * 1.8 });
+    postPiles.push(dots);
+  }
+  var postSeed = []; for (i = 0; i < NP; i++) postSeed.push(rnd());
+
+  // pickets + rails around the loop (skip the gate bay), in build order
+  var pickets = [], bayPickets = [], rails = [], bayRails = [];
+  for (b = 0; b < NP; b++) { bayPickets.push([]); bayRails.push([]); }
+  var pIdx = 0, rIdx = 0;
+  for (b = 0; b < NP; b++) {
+    if (b === F.gateBay) continue;
+    for (j = 0; j < 3; j++) {
+      var R = { b: b, h: F.railHs[j], d: PLIST[b].d + j * 3, idx: rIdx++ };
+      rails.push(R); bayRails[b].push(R);
+    }
+    for (j = 0; j < 6; j++) {
+      var P = {
+        b: b, u0: (j + 0.08) / 6, u1: (j + 0.92) / 6,
+        jit: rnd() * 6 - 3, tone: rnd(), idx: pIdx++,
+        d: PLIST[b].d + (j + 0.5) / 6 * bayLen(b)
+      };
+      pickets.push(P); bayPickets[b].push(P);
+    }
+  }
+  var NPK = pickets.length, NRAILS = rails.length;
+
+  // painter's order: bays + posts sorted far → near
+  var ORDER = [];
+  for (b = 0; b < NP; b++) {
+    ORDER.push({ ty: 'bay',  i: b, dep: Math.max(PLIST[b].z, PLIST[(b + 1) % NP].z) });
+  }
+  for (i = 0; i < NP; i++) ORDER.push({ ty: 'post', i: i, dep: PLIST[i].z - 0.001 });
+  ORDER.sort(function (a, c) { return c.dep - a.dep; });
+
+  var clouds = [
+    { x0: 120, y: 56,  s: 1.15, sp: 1.0 },
+    { x0: 520, y: 96,  s: 0.8,  sp: 1.5 },
+    { x0: 860, y: 44,  s: 1.0,  sp: 0.7 }
+  ];
+
+  /* ── offscreen backdrops (cached, redrawn only on resize) ────── */
+  var BLEED = 40;
+  var bFar = document.createElement('canvas'), bGround = document.createElement('canvas');
+  var backdropScale = 0;
+
+  function renderGround(g, rs) {
+    g.setTransform(rs, 0, 0, rs, BLEED * rs, BLEED * rs);
+    g.clearRect(-BLEED, -BLEED, W + 2 * BLEED, H + 2 * BLEED);
+    var r2 = mulberry32(7), k;
+    // big lawn: from just below the treeline down to the front grade line
+    g.fillStyle = COL.lawn; g.fillRect(-BLEED, 208, W + 2 * BLEED, GRADE - 208);
+    for (k = 0; k < 80; k++) {
+      g.fillStyle = r2() < .5 ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.05)';
+      var my = 214 + r2() * (GRADE - 224);
+      var msc = lerp(.45, 1, clamp((my - 208) / (GRADE - 208), 0, 1));
+      g.beginPath();
+      g.ellipse(-BLEED + r2() * (W + 80), my, (14 + r2() * 30) * msc, (5 + r2() * 9) * msc, 0, 0, 6.2832);
+      g.fill();
+    }
+    // walkway from the porch down to the gate
+    var gc = (gp(GATE_X0, 0)[0] + gp(GATE_X1, 0)[0]) / 2;
+    g.fillStyle = COL.walk;
+    g.beginPath();
+    g.moveTo(477, 272); g.lineTo(499, 272);
+    g.lineTo(gc + 22, GRADE); g.lineTo(gc - 22, GRADE);
+    g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(0,0,0,.2)'; g.lineWidth = 1.5;
+    for (k = 1; k < 7; k++) {
+      var vv = k / 7;
+      g.beginPath();
+      g.moveTo(lerp(477, gc - 22, vv), lerp(272, GRADE, vv));
+      g.lineTo(lerp(499, gc + 22, vv), lerp(272, GRADE, vv));
+      g.stroke();
+    }
+    // flower bed by the shrubs
+    for (k = 0; k < flowers.length; k++) {
+      g.strokeStyle = '#3e5537'; g.lineWidth = 1.4;
+      g.beginPath(); g.moveTo(flowers[k].x, flowers[k].y + 6); g.lineTo(flowers[k].x, flowers[k].y); g.stroke();
+      g.fillStyle = flowers[k].c < .5 ? '#e8e2cf' : '#e3c76a';
+      g.beginPath(); g.arc(flowers[k].x, flowers[k].y, 2.4, 0, 6.2832); g.fill();
+    }
+    // ── the below-grade cutaway (front run): topsoil / subsoil / deep ──
+    g.fillStyle = COL.topsoil; g.fillRect(-BLEED, GRADE, W + 2 * BLEED, 16);
+    g.fillStyle = COL.subsoil; g.fillRect(-BLEED, GRADE + 16, W + 2 * BLEED, 63);
+    var dp = g.createLinearGradient(0, GRADE + 63, 0, H + BLEED);
+    dp.addColorStop(0, COL.subsoil); dp.addColorStop(.35, COL.deep); dp.addColorStop(1, '#17130f');
+    g.fillStyle = dp; g.fillRect(-BLEED, GRADE + 63, W + 2 * BLEED, H + BLEED - GRADE - 63);
+    for (k = 0; k < stones.length; k++) {
+      g.fillStyle = stones[k].s < .5 ? 'rgba(0,0,0,.25)' : 'rgba(255,255,255,.08)';
+      g.beginPath(); g.arc(stones[k].x, stones[k].y, stones[k].r, 0, 6.2832); g.fill();
+    }
+  }
+
+  function renderFar(g, rs) {
+    g.setTransform(rs, 0, 0, rs, BLEED * rs, BLEED * rs);
+    g.clearRect(-BLEED, -BLEED, W + 2 * BLEED, H + 2 * BLEED);
+    var k;
+    // distant treeline, higher: the camera is elevated
+    g.fillStyle = COL.treeline;
+    g.fillRect(-BLEED, 198, W + 2 * BLEED, 20);
+    for (k = -BLEED; k < W + BLEED; k += 52) {
+      g.beginPath(); g.ellipse(k, 199, 30, 12, 0, 0, 6.2832); g.fill();
+    }
+    var fade = g.createLinearGradient(0, 214, 0, 230);
+    fade.addColorStop(0, COL.treeline); fade.addColorStop(1, 'rgba(59,74,57,0)');
+    g.fillStyle = fade; g.fillRect(-BLEED, 214, W + 2 * BLEED, 16);
+
+    // the whole house group is scaled down + raised for the elevated view
+    g.save();
+    g.translate(510, 272); g.scale(0.85, 0.85); g.translate(-510, -300);
+
+    g.fillStyle = 'rgba(0,0,0,.14)';                       // house shadow → right
+    g.beginPath();
+    g.moveTo(310, 300); g.lineTo(730, 300); g.lineTo(838, 336); g.lineTo(418, 336);
+    g.closePath(); g.fill();
+
+    g.fillStyle = COL.siding; g.fillRect(300, 132, 260, 168);
+    g.strokeStyle = 'rgba(0,0,0,.10)'; g.lineWidth = 1;
+    for (k = 141; k < 300; k += 9) { g.beginPath(); g.moveTo(300, k); g.lineTo(560, k); g.stroke(); }
+    var lit = g.createLinearGradient(300, 0, 560, 0);
+    lit.addColorStop(0, 'rgba(255,255,255,.12)'); lit.addColorStop(.5, 'rgba(255,255,255,0)');
+    lit.addColorStop(1, 'rgba(0,0,0,.10)');
+    g.fillStyle = lit; g.fillRect(300, 132, 260, 168);
+    // back roof slope peeks over the ridge — sells the elevated camera
+    g.fillStyle = COL.roofBack;
+    g.beginPath(); g.moveTo(300, 130); g.lineTo(430, 52); g.lineTo(560, 130); g.closePath(); g.fill();
+    g.fillStyle = COL.roof;
+    g.beginPath(); g.moveTo(283, 138); g.lineTo(430, 62); g.lineTo(577, 138); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.15)'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(430, 64); g.lineTo(575, 136); g.stroke();
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(300, 138, 260, 7);
+    g.fillStyle = mixHex(COL.siding, '#000000', 0.06); g.fillRect(560, 214, 160, 86);
+    for (k = 222; k < 300; k += 9) { g.strokeStyle = 'rgba(0,0,0,.10)'; g.beginPath(); g.moveTo(560, k); g.lineTo(720, k); g.stroke(); }
+    g.fillStyle = COL.roofBack;
+    g.beginPath(); g.moveTo(558, 214); g.lineTo(640, 160); g.lineTo(722, 214); g.closePath(); g.fill();
+    g.fillStyle = COL.roof;
+    g.beginPath(); g.moveTo(550, 219); g.lineTo(640, 168); g.lineTo(730, 219); g.closePath(); g.fill();
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(560, 219, 160, 6);
+    g.fillStyle = '#b9bec2'; g.fillRect(570, 240, 130, 60);
+    g.strokeStyle = 'rgba(0,0,0,.16)'; g.lineWidth = 2;
+    for (k = 254; k < 300; k += 15) { g.beginPath(); g.moveTo(571, k); g.lineTo(699, k); g.stroke(); }
+    g.strokeStyle = 'rgba(0,0,0,.3)'; g.strokeRect(570, 240, 130, 60);
+    g.fillStyle = '#4a3527'; g.fillRect(468, 238, 36, 62);
+    g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 2; g.strokeRect(468, 238, 36, 62);
+    g.fillStyle = '#c9b47a'; g.beginPath(); g.arc(498, 270, 2.2, 0, 6.2832); g.fill();
+    g.fillStyle = '#8f9294'; g.fillRect(462, 300, 48, 8);
+    g.fillStyle = '#2b2f33'; g.fillRect(509, 246, 7, 12);
+    g.fillStyle = '#d8b56a'; g.fillRect(511, 249, 3, 5);
+    var wins = [[326, 158, 44, 36], [398, 158, 44, 36], [330, 232, 54, 44]];
+    for (k = 0; k < wins.length; k++) {
+      var wn = wins[k];
+      g.fillStyle = COL.glass; g.fillRect(wn[0], wn[1], wn[2], wn[3]);
+      g.strokeStyle = COL.trim; g.lineWidth = 3; g.strokeRect(wn[0], wn[1], wn[2], wn[3]);
+      g.lineWidth = 1.5;
+      g.beginPath(); g.moveTo(wn[0] + wn[2] / 2, wn[1]); g.lineTo(wn[0] + wn[2] / 2, wn[1] + wn[3]); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,.2)';
+      g.beginPath(); g.moveTo(wn[0] + 4, wn[1] + wn[3] - 6); g.lineTo(wn[0] + wn[2] - 8, wn[1] + 5); g.stroke();
+      g.fillStyle = COL.trim; g.fillRect(wn[0] - 3, wn[1] + wn[3], wn[2] + 6, 4);
+    }
+    var shr = [[322, 296, 15], [368, 298, 11]];
+    for (k = 0; k < shr.length; k++) {
+      g.fillStyle = COL.canopy;
+      g.beginPath(); g.ellipse(shr[k][0], shr[k][1], shr[k][2], shr[k][2] * .8, 0, 0, 6.2832); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.10)';
+      g.beginPath(); g.ellipse(shr[k][0] - 4, shr[k][1] - 3, shr[k][2] * .5, shr[k][2] * .4, 0, 0, 6.2832); g.fill();
+    }
+    g.fillStyle = 'rgba(0,0,0,.15)';
+    g.beginPath(); g.ellipse(912, 276, 62, 10, 0, 0, 6.2832); g.fill();
+    g.fillStyle = COL.trunk;
+    g.beginPath(); g.moveTo(864, 268); g.lineTo(869, 190); g.lineTo(877, 190); g.lineTo(880, 268); g.closePath(); g.fill();
+    var can = [[870, 150, 54], [828, 180, 34], [914, 176, 38]];
+    for (k = 0; k < can.length; k++) {
+      g.fillStyle = COL.canopy;
+      g.beginPath(); g.arc(can[k][0], can[k][1], can[k][2], 0, 6.2832); g.fill();
+      g.fillStyle = COL.canopyLit; g.globalAlpha = .55;
+      g.beginPath(); g.arc(can[k][0] - can[k][2] * .3, can[k][1] - can[k][2] * .25, can[k][2] * .6, 0, 6.2832); g.fill();
+      g.globalAlpha = 1;
+    }
+    g.restore();
+  }
+
+  function renderBackdrops(rs) {
+    backdropScale = rs;
+    var w = Math.ceil((W + 2 * BLEED) * rs), h = Math.ceil((H + 2 * BLEED) * rs);
+    bFar.width = w;    bFar.height = h;    renderFar(bFar.getContext('2d'), rs);
+    bGround.width = w; bGround.height = h; renderGround(bGround.getContext('2d'), rs);
+  }
+
+  /* ── camera / layers ─────────────────────────────────────────── */
+  var fitS = 1, fitOX = 0, fitOY = 0, parX = 0, parY = 0;
+  function layer(t, depth) {
+    var z = 1 + CFG.ZOOM * t * lerp(0.35, 1, depth);
+    var px = parX * 10 * lerp(0.25, 1, depth);
+    var py = parY * 6  * lerp(0.25, 1, depth);
+    var s = fitS * z;
+    ctx.setTransform(s, 0, 0, s,
+      fitOX + fitS * (CAMX - z * CAMX + px),
+      fitOY + fitS * (CAMY - z * CAMY + py));
+  }
+
+  /* ── small figures (scaled by depth) ─────────────────────────── */
+  function drawWorker(wx, wy, stride, handX, handY, alpha, sc) {
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.beginPath(); ctx.ellipse(wx + 3 * sc, wy + 1, 13 * sc, 3.4 * sc, 0, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = '#2f3438'; ctx.lineWidth = Math.max(1.4, 3.4 * sc); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(wx, wy - 18 * sc); ctx.lineTo(wx + (-4 + stride) * sc, wy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(wx, wy - 18 * sc); ctx.lineTo(wx + (5 - stride) * sc, wy); ctx.stroke();
+    ctx.strokeStyle = ACCENT; ctx.lineWidth = Math.max(2, 5 * sc);
+    ctx.beginPath(); ctx.moveTo(wx, wy - 18 * sc); ctx.lineTo(wx + 2 * sc, wy - 33 * sc); ctx.stroke();
+    ctx.strokeStyle = '#2f3438'; ctx.lineWidth = Math.max(1.2, 3 * sc);
+    ctx.beginPath(); ctx.moveTo(wx + 2 * sc, wy - 30 * sc); ctx.lineTo(handX, handY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(wx + 2 * sc, wy - 28 * sc); ctx.lineTo(handX + 2 * sc, handY + 3 * sc); ctx.stroke();
+    ctx.fillStyle = '#c9a17c';
+    ctx.beginPath(); ctx.arc(wx + 2 * sc, wy - 39 * sc, 4.6 * sc, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = ACCENT;
+    ctx.beginPath(); ctx.arc(wx + 2 * sc, wy - 40.5 * sc, 4.8 * sc, Math.PI, 0); ctx.fill();
+    ctx.fillRect(wx - 4.5 * sc, wy - 40.5 * sc, 13 * sc, 1.8 * sc);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawSpoil(px, gy, sc, hp, shrink, dots) {
+    var a = Math.min(1, hp * 2) * (1 - shrink);
+    if (a <= 0.02) return;
+    var w = 34 * sc, h = 15 * sc * ease(hp) * (1 - 0.7 * shrink);
+    var bx = px + 26 * sc, by = gy - 1;
+    ctx.globalAlpha = a;
+    ctx.fillStyle = 'rgba(0,0,0,.16)';
+    ctx.beginPath(); ctx.ellipse(bx + 4 * sc, by + 1, w * .55, 3.4 * sc, 0, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = COL.topsoil;
+    ctx.beginPath();
+    ctx.moveTo(bx - w / 2, by);
+    ctx.quadraticCurveTo(bx - w * .2, by - h * 1.15, bx + w * .12, by - h * .7);
+    ctx.quadraticCurveTo(bx + w * .34, by - h * .35, bx + w / 2, by);
+    ctx.closePath(); ctx.fill();
+    for (var k = 0; k < dots.length; k++) {
+      var d = dots[k];
+      ctx.fillStyle = 'rgba(20,15,10,.3)';
+      ctx.beginPath(); ctx.ellipse(bx + d.dx * w, by - d.dy * h, d.r * sc, d.r * .6 * sc, 0, 0, 6.2832); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* ── fence element renderers ─────────────────────────────────── */
+  function drawPost(k, st) {
+    var A = PLIST[k], p = gp(A.gx, A.z), x = p[0], gy = p[1], sc = p[2];
+    var isFront = A.z === 0;
+    var flagP = ease(stag(st.layoutP, k, NP, 0.4));
+    var hp    = ease(stag(st.digP,   k, NP, 0.35));
+    var pp    = ease(stag(st.postsP, k, NP, 0.3));
+    var fp    = ease(stag(st.footP,  k, NP, 0.3));
+    var cap   = ease(stag(st.capsP,  k, NP, 0.35));
+
+    // marker flag, pulled once its hole is bored
+    var fa = flagP * (1 - hp) * (1 - st.strOff);
+    if (fa > 0.01) {
+      ctx.globalAlpha = fa;
+      ctx.strokeStyle = '#d8dadc'; ctx.lineWidth = Math.max(1, 1.4 * sc);
+      ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy - 16 * sc * flagP); ctx.stroke();
+      ctx.fillStyle = ACCENT;
+      ctx.beginPath();
+      ctx.moveTo(x, gy - 16 * sc * flagP); ctx.lineTo(x + 9 * sc, gy - 13 * sc * flagP); ctx.lineTo(x, gy - 10 * sc * flagP);
+      ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    var hd = F.holeDepth * hp;                  // cutaway depth (front only)
+    if (isFront) {
+      if (hd > 0.5) {
+        ctx.fillStyle = COL.hole;
+        ctx.fillRect(x - F.holeW / 2, gy + 1, F.holeW, hd);
+        ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 1.5;
+        ctx.strokeRect(x - F.holeW / 2, gy + 1, F.holeW, hd);
+      }
+    } else if (hp > 0.05) {                     // plan-view hole for side/back posts
+      ctx.fillStyle = COL.hole;
+      ctx.beginPath(); ctx.ellipse(x, gy + 1.5 * sc, 11 * sc * hp, 3.4 * sc * hp, 0, 0, 6.2832); ctx.fill();
+    }
+    drawSpoil(x, gy, sc, hp, fp, postPiles[k]);
+
+    if (isFront && fp > 0 && hd > 4) {          // gravel bed in the cutaway
+      ctx.fillStyle = COL.gravelX;
+      ctx.fillRect(x - F.holeW / 2 + 2, gy + hd - 4, F.holeW - 4, 4 * Math.min(1, fp * 3));
+    }
+
+    // post drops in from above
+    if (pp > 0.01) {
+      var dropY = (1 - pp) * -170 * sc;
+      var stn = st.stainAtD(PLIST[k].d);
+      ctx.globalAlpha = Math.min(1, pp * 3);
+      ctx.fillStyle = 'rgba(0,0,0,.12)';        // shadow on the lawn → right
+      ctx.beginPath();
+      ctx.moveTo(x + 5 * sc, gy - 1); ctx.lineTo(x + 30 * sc, gy - 14 * sc);
+      ctx.lineTo(x + 34 * sc, gy - 12 * sc); ctx.lineTo(x + 9 * sc, gy - 1);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = mixHex(mixHex(COL.postRaw, '#8d7148', postSeed[k] * .4), CFG.STAIN, stn);
+      ctx.fillRect(x - 5 * sc, gy - PH * sc + dropY, 10 * sc, PH * sc);
+      ctx.fillStyle = 'rgba(255,255,255,.14)';
+      ctx.fillRect(x - 5 * sc, gy - PH * sc + dropY, 2 * sc, PH * sc);
+      ctx.fillStyle = 'rgba(60,40,20,.25)';
+      ctx.fillRect(x + 3 * sc, gy - PH * sc + dropY, 2 * sc, PH * sc);
+      if (isFront && pp > 0.95) {               // below grade in the cutaway
+        ctx.fillStyle = mixHex('#8d7148', '#6e5636', 0.4);
+        ctx.fillRect(x - 4, gy, 8, Math.max(0, hd - 4));
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // concrete footing
+    if (fp > 0.01) {
+      var conc = mixHex(COL.wet, COL.cured, st.cureP);
+      if (isFront && hd > 2) {
+        var fHt = (hd - 4) * fp;
+        ctx.globalAlpha = 0.92;
+        ctx.fillStyle = conc;
+        ctx.fillRect(x - F.holeW / 2 + 1, gy + hd - 4 - fHt, F.holeW - 2, fHt);
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1;
+        ctx.strokeRect(x - F.holeW / 2 + 1, gy + hd - 4 - fHt, F.holeW - 2, fHt);
+      } else if (!isFront) {                    // hole fills in plan view
+        ctx.fillStyle = conc;
+        ctx.beginPath(); ctx.ellipse(x, gy + 1.5 * sc, 11 * sc * fp, 3.4 * sc * fp, 0, 0, 6.2832); ctx.fill();
+      }
+      if (fp > 0.9) {                           // crowned collar at grade
+        ctx.fillStyle = conc;
+        ctx.beginPath();
+        ctx.moveTo(x - 13 * sc, gy); ctx.lineTo(x + 13 * sc, gy);
+        ctx.lineTo(x + 9 * sc, gy - 3 * sc); ctx.lineTo(x - 9 * sc, gy - 3 * sc);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+
+    // pyramid post cap
+    if (cap > 0.01) {
+      var cy = gy - PH * sc - 1, stc = st.stainAtD(PLIST[k].d);
+      ctx.globalAlpha = cap;
+      ctx.fillStyle = mixHex(COL.capRaw, mixHex(CFG.STAIN, '#000000', .2), stc);
+      ctx.fillRect(x - 8 * sc, cy, 16 * sc, 3.5 * sc);
+      ctx.beginPath();
+      ctx.moveTo(x - 8 * sc, cy); ctx.lineTo(x, cy - 7 * sc * cap); ctx.lineTo(x + 8 * sc, cy);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.18)';
+      ctx.beginPath(); ctx.moveTo(x - 8 * sc, cy); ctx.lineTo(x, cy - 7 * sc * cap); ctx.lineTo(x - 2 * sc, cy); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawBay(b, st) {
+    var k, R, rp, P, pk;
+    // rails
+    for (k = 0; k < bayRails[b].length; k++) {
+      R = bayRails[b][k];
+      rp = ease(stag(st.railsP, R.idx, NRAILS, 0.2));
+      if (rp <= 0.01) continue;
+      var a0 = bayPt(b, 0.02, R.h);
+      var a1 = bayPt(b, 0.02 + 0.96 * rp, R.h);
+      var t1 = bayPt(b, 0.02 + 0.96 * rp, R.h + 7);
+      var t0 = bayPt(b, 0.02, R.h + 7);
+      var stn = st.stainAtD(R.d);
+      ctx.fillStyle = 'rgba(0,0,0,.15)';
+      ctx.beginPath();
+      ctx.moveTo(a0[0], a0[1] + 2 * a0[2]); ctx.lineTo(a1[0], a1[1] + 2 * a1[2]);
+      ctx.lineTo(a1[0], a1[1]); ctx.lineTo(a0[0], a0[1]);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = mixHex(COL.railRaw, CFG.STAIN, stn);
+      ctx.beginPath();
+      ctx.moveTo(t0[0], t0[1]); ctx.lineTo(t1[0], t1[1]);
+      ctx.lineTo(a1[0], a1[1]); ctx.lineTo(a0[0], a0[1]);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = Math.max(1, 1.6 * t0[2]);
+      ctx.beginPath(); ctx.moveTo(t0[0], t0[1]); ctx.lineTo(t1[0], t1[1]); ctx.stroke();
+    }
+    // pickets
+    for (k = 0; k < bayPickets[b].length; k++) {
+      P = bayPickets[b][k];
+      pk = ease(stag(st.pickP, P.idx, NPK, 0.15));
+      if (pk <= 0.01) continue;
+      var b0 = bayPt(b, P.u0, 0), b1 = bayPt(b, P.u1, 0);
+      var hgt = FH + P.jit;
+      var q0 = bayPt(b, P.u0, hgt), q1 = bayPt(b, P.u1, hgt);
+      var sc = (b0[2] + b1[2]) / 2;
+      var oy = (1 - pk) * -60 * sc;
+      var stn3 = st.stainAtD(P.d);
+      ctx.globalAlpha = Math.min(1, pk * 3);
+      ctx.fillStyle = mixHex(mixHex(COL.picketRaw, COL.picketRaw2, P.tone * .7), CFG.STAIN, stn3);
+      ctx.beginPath();
+      if (sc > 0.7) {                            // dog-ear detail up close
+        var d5 = 5 * sc, d4x = (q1[0] - q0[0]) * 0.28;
+        ctx.moveTo(b0[0], b0[1] + oy);
+        ctx.lineTo(q0[0], q0[1] + d5 + oy);
+        ctx.lineTo(q0[0] + d4x, q0[1] + oy);
+        ctx.lineTo(q1[0] - d4x, q1[1] + oy);
+        ctx.lineTo(q1[0], q1[1] + d5 + oy);
+        ctx.lineTo(b1[0], b1[1] + oy);
+      } else {                                   // simple board at distance
+        ctx.moveTo(b0[0], b0[1] + oy);
+        ctx.lineTo(q0[0], q0[1] + oy);
+        ctx.lineTo(q1[0], q1[1] + oy);
+        ctx.lineTo(b1[0], b1[1] + oy);
+      }
+      ctx.closePath(); ctx.fill();
+      if (sc > 0.7) {                            // grain up close
+        ctx.strokeStyle = 'rgba(60,40,20,' + (0.15 * (1 - stn3 * .4)).toFixed(3) + ')';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(lerp(b0[0], b1[0], .32), q0[1] + 10 * sc + oy); ctx.lineTo(lerp(b0[0], b1[0], .3), b0[1] - 5 * sc + oy);
+        ctx.moveTo(lerp(b0[0], b1[0], .68), q0[1] + 12 * sc + oy); ctx.lineTo(lerp(b0[0], b1[0], .7), b0[1] - 4 * sc + oy);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(0,0,0,.10)'; ctx.lineWidth = Math.max(.6, sc);
+      ctx.beginPath(); ctx.moveTo(b1[0], b1[1] - 2 + oy); ctx.lineTo(q1[0], q1[1] + 4 * sc + oy); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  /* ── the frame ───────────────────────────────────────────────── */
+  function draw(t, ms) {
+    var cw = canvas.width, ch = canvas.height;
+    if (!cw || !ch) return;
+    fitS = Math.min(cw / W, ch / H);
+    fitOX = (cw - W * fitS) / 2; fitOY = (ch - H * fitS) / 2;
+
+    var TW = CFG.TW;
+    var st = {
+      layoutP: ease(segw(t, TW.layout)),
+      digP:    segw(t, TW.dig),
+      postsP:  segw(t, TW.posts),
+      footP:   segw(t, TW.foot),
+      railsP:  segw(t, TW.rails),
+      pickP:   segw(t, TW.pickets),
+      capsP:   segw(t, TW.caps),
+      cureP:   ease(segw(t, TW.cure)),
+      strOff:  ease(segw(t, TW.stringOff))
+    };
+    var gateP   = ease(segw(t, TW.gate));
+    var latchP  = ease(segw(t, TW.latch));
+    var stainP  = ease(segw(t, TW.stain));
+    var truckIn = ease(segw(t, TW.truckIn)), truckOut = ease(segw(t, TW.truckOut));
+    var unloadP = ease(segw(t, TW.unload));
+    var useP    = segw(t, TW.lumberUse);
+    var g       = ease(segw(t, TW.golden));
+    var glow    = ease(segw(t, TW.glow));
+    var k;
+
+    var sweepD = stainP * LOOP;                              // stain rides the loop
+    st.stainAtD = function (d) { return stainP <= 0 ? 0 : clamp((sweepD - d) / 80, 0, 1); };
+
+    /* SKY (device space) */
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    var sky = ctx.createLinearGradient(0, 0, 0, ch * 0.7);
+    sky.addColorStop(0, mixHex(CFG.SKY.morning[0], CFG.SKY.golden[0], g));
+    sky.addColorStop(1, mixHex(CFG.SKY.morning[1], CFG.SKY.golden[1], g));
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, cw, ch);
+    var sx = cw * lerp(0.20, 0.13, g), sy = ch * lerp(0.13, 0.26, g), sr = Math.max(ch, cw) * 0.16;
+    var sun = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
+    sun.addColorStop(0, 'rgba(255,244,214,' + (0.85 - 0.15 * g) + ')');
+    sun.addColorStop(0.12, 'rgba(255,' + Math.round(lerp(238, 190, g)) + ',' + Math.round(lerp(190, 120, g)) + ',.55)');
+    sun.addColorStop(1, 'rgba(255,220,160,0)');
+    ctx.fillStyle = sun; ctx.fillRect(0, 0, cw, ch);
+
+    /* clouds (ambient) */
+    layer(t, 0.4);
+    ctx.fillStyle = 'rgba(255,255,255,' + (0.66 - 0.2 * g) + ')';
+    for (k = 0; k < clouds.length; k++) {
+      var cl = clouds[k];
+      var cx = ((cl.x0 + ms * 0.0035 * cl.sp) % (W + 320)) - 160;
+      ctx.beginPath();
+      ctx.ellipse(cx, cl.y, 52 * cl.s, 13 * cl.s, 0, 0, 6.2832);
+      ctx.ellipse(cx + 34 * cl.s, cl.y - 8 * cl.s, 34 * cl.s, 11 * cl.s, 0, 0, 6.2832);
+      ctx.ellipse(cx - 38 * cl.s, cl.y - 4 * cl.s, 30 * cl.s, 10 * cl.s, 0, 0, 6.2832);
+      ctx.fill();
+    }
+
+    /* GROUND backdrop (lawn / walkway / cutaway) */
+    layer(t, 1);
+    ctx.drawImage(bGround, -BLEED, -BLEED, W + 2 * BLEED, H + 2 * BLEED);
+
+    /* grass sway (ambient), scaled with depth */
+    ctx.strokeStyle = 'rgba(107,138,86,.85)'; ctx.lineCap = 'round';
+    for (k = 0; k < grass.length; k++) {
+      var gr = grass[k];
+      var gsc = lerp(.45, 1, clamp((gr.y - 208) / (GRADE - 208), 0, 1));
+      var sway = Math.sin(ms * 0.0011 + gr.p) * 1.8 * gsc;
+      ctx.lineWidth = 1.3 * gsc;
+      ctx.beginPath();
+      ctx.moveTo(gr.x, gr.y); ctx.lineTo(gr.x + sway, gr.y - gr.h * gsc);
+      ctx.moveTo(gr.x + 2.4 * gsc, gr.y); ctx.lineTo(gr.x + 2.4 * gsc + sway * .7, gr.y - gr.h * .75 * gsc);
+      ctx.stroke();
+    }
+
+    /* 1 ▸ layout: string line rings the property (drawn before the
+       house so its back leg is correctly hidden behind it) */
+    var strA = st.layoutP * (1 - st.strOff);
+    if (strA > 0.01) {
+      ctx.globalAlpha = strA;
+      var corners = [gp(F.x0, 0), gp(F.x0 + (F.frontPosts - 1) * F.spacing, 0),
+                     gp(F.x0 + (F.frontPosts - 1) * F.spacing, 1), gp(F.x0, 1)];
+      for (k = 0; k < 4; k++) {                              // corner stakes
+        var cp = corners[k];
+        ctx.fillStyle = COL.stake;
+        ctx.fillRect(cp[0] - 2.5 * cp[2], cp[1] - 22 * cp[2], 5 * cp[2], 22 * cp[2]);
+      }
+      var segLens = [F.backLen, F.sideLen, F.backLen, F.sideLen];
+      var totLen = 2 * (F.backLen + F.sideLen);
+      var remain = st.layoutP * totLen;
+      ctx.strokeStyle = ACCENT;
+      for (k = 0; k < 4 && remain > 0; k++) {
+        var A = corners[k], B = corners[(k + 1) % 4];
+        var f = Math.min(1, remain / segLens[k]); remain -= segLens[k];
+        var ex = lerp(A[0], B[0], f), ey = lerp(A[1], B[1], f) - 18 * lerp(A[2], B[2], f);
+        ctx.lineWidth = Math.max(.8, 1.6 * (A[2] + B[2]) / 2);
+        ctx.beginPath();
+        ctx.moveTo(A[0], A[1] - 18 * A[2]);
+        if (k === 0) ctx.quadraticCurveTo((A[0] + ex) / 2, (A[1] + ey) / 2 + 5, ex, ey);
+        else ctx.lineTo(ex, ey);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    /* FAR FENCE PASS: the back run (and far corners) behind the house */
+    for (k = 0; k < ORDER.length; k++) {
+      var O = ORDER[k];
+      if (O.dep <= 0.82) continue;
+      if (O.ty === 'bay') drawBay(O.i, st); else drawPost(O.i, st);
+    }
+
+    /* FAR backdrop (treeline / house / tree) — hides the back run */
+    layer(t, 0.85);
+    ctx.drawImage(bFar, -BLEED, -BLEED, W + 2 * BLEED, H + 2 * BLEED);
+    if (glow > 0.01) {
+      var pgx = hTx(512), pgy = hTy(252);
+      var pg = ctx.createRadialGradient(pgx, pgy, 0, pgx, pgy, 30);
+      pg.addColorStop(0, 'rgba(255,196,110,' + (0.55 * glow).toFixed(3) + ')');
+      pg.addColorStop(1, 'rgba(255,196,110,0)');
+      ctx.fillStyle = pg; ctx.fillRect(pgx - 32, pgy - 32, 64, 64);
+      ctx.fillStyle = 'rgba(255,190,110,' + (0.30 * glow).toFixed(3) + ')';
+      var wins = [[326, 158, 44, 36], [398, 158, 44, 36], [330, 232, 54, 44]];
+      for (k = 0; k < wins.length; k++) {
+        ctx.fillRect(hTx(wins[k][0]), hTy(wins[k][1]), wins[k][2] * 0.85, wins[k][3] * 0.85);
+      }
+    }
+
+    /* NEAR FENCE PASS: sides + front, far → near */
+    layer(t, 1);
+    /* fence contact shadow along the front run */
+    var builtFrac = Math.max(st.pickP, st.postsP * 0.25);
+    if (builtFrac > 0.02) {
+      ctx.fillStyle = 'rgba(0,0,0,' + (0.10 * Math.min(1, builtFrac * 1.4)).toFixed(3) + ')';
+      var shX1 = lerp(FENCE_L, FENCE_R, clamp(st.pickP * NPK / 46, 0, 1));
+      ctx.beginPath();
+      ctx.moveTo(FENCE_L, GRADE - 1); ctx.lineTo(shX1, GRADE - 1);
+      ctx.lineTo(shX1 + 24, GRADE - 12); ctx.lineTo(FENCE_L + 24, GRADE - 12);
+      ctx.closePath(); ctx.fill();
+    }
+    for (k = 0; k < ORDER.length; k++) {
+      var O2 = ORDER[k];
+      if (O2.dep > 0.82) continue;
+      if (O2.ty === 'bay') drawBay(O2.i, st); else drawPost(O2.i, st);
+    }
+
+    /* 7 ▸ gate: swings closed on the front walkway bay + hardware */
+    if (gateP > 0.01) {
+      var gx0 = gp(GATE_X0, 0)[0], gx1 = gp(GATE_X1, 0)[0];
+      var hinge = gx0 + 6, gw = gx1 - gx0 - 12;
+      var open = 1 - gateP;
+      var gTop = GRADE - FH + 2, gBot = GRADE - 4;
+      var stg = st.stainAtD((PLIST[F.gateBay].d + PLIST[F.gateBay + 1].d) / 2);
+      ctx.save();
+      ctx.translate(hinge, 0);
+      ctx.scale(Math.max(0.12, 1 - open * 0.88), 1);
+      ctx.globalAlpha = Math.min(1, gateP * 2.5);
+      for (k = 0; k < 6; k++) {
+        var ggx = k * (gw / 6) + 1, gwp = gw / 6 - 2;
+        ctx.fillStyle = mixHex(mixHex(COL.picketRaw, COL.picketRaw2, (k % 3) * .25), CFG.STAIN, stg);
+        ctx.beginPath();
+        ctx.moveTo(ggx, gBot); ctx.lineTo(ggx, gTop + 5); ctx.lineTo(ggx + 3, gTop);
+        ctx.lineTo(ggx + gwp - 3, gTop); ctx.lineTo(ggx + gwp, gTop + 5); ctx.lineTo(ggx + gwp, gBot);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle = mixHex(COL.railRaw, CFG.STAIN, stg);
+      ctx.fillRect(2, gTop + 16, gw - 4, 6);
+      ctx.fillRect(2, gBot - 24, gw - 4, 6);
+      ctx.strokeStyle = mixHex(COL.railRaw, CFG.STAIN, stg); ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.moveTo(4, gBot - 22); ctx.lineTo(gw - 4, gTop + 20); ctx.stroke();
+      ctx.restore();
+      ctx.globalAlpha = Math.min(1, gateP * 2.5);
+      ctx.fillStyle = COL.hw;
+      ctx.fillRect(gx0 + 2, gTop + 18, 10, 6);
+      ctx.fillRect(gx0 + 2, GRADE - 30, 10, 6);
+      ctx.globalAlpha = 1;
+      if (latchP > 0.01) {
+        ctx.globalAlpha = latchP;
+        ctx.fillStyle = COL.hw; ctx.fillRect(gx1 - 12, 380, 10, 8);
+        ctx.fillStyle = ACCENT; ctx.fillRect(gx1 - 10, 382, 6, 4);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    /* 8 ▸ stain: sprayer wand travels the whole loop */
+    if (stainP > 0 && stainP < 1) {
+      var wp0 = loopPt(sweepD, 0);
+      var wandX = wp0[0] - 14 * wp0[2], wandY = wp0[1], wsc = wp0[2];
+      var puff = (6 + Math.abs(Math.sin(stainP * 40)) * 5) * wsc;
+      ctx.fillStyle = 'rgba(138,83,48,.22)';
+      ctx.beginPath(); ctx.ellipse(wandX + 10 * wsc, wandY - 58 * wsc, puff + 8 * wsc, 26 * wsc, 0, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = COL.steel; ctx.lineWidth = Math.max(1.6, 4 * wsc); ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(wandX, wandY + 4 * wsc); ctx.lineTo(wandX, wandY - 102 * wsc); ctx.stroke();
+      ctx.strokeStyle = ACCENT; ctx.lineWidth = Math.max(2, 5 * wsc);
+      ctx.beginPath(); ctx.moveTo(wandX, wandY - 90 * wsc); ctx.lineTo(wandX, wandY - 106 * wsc); ctx.stroke();
+      ctx.fillStyle = COL.hw; ctx.fillRect(wandX - 5 * wsc, wandY - 110 * wsc, 10 * wsc, 7 * wsc);
+    }
+    /* sheen across the finished front run */
+    if (stainP > 0.6) {
+      var shA = 0.06 * ease((stainP - 0.6) / 0.4);
+      var shg = ctx.createLinearGradient(FENCE_L, GRADE - FH, FENCE_R, GRADE);
+      shg.addColorStop(0, 'rgba(255,255,255,' + shA.toFixed(3) + ')');
+      shg.addColorStop(.5, 'rgba(255,255,255,0)');
+      shg.addColorStop(1, 'rgba(255,255,255,' + (shA * .6).toFixed(3) + ')');
+      ctx.fillStyle = shg;
+      ctx.fillRect(FENCE_L, GRADE - FH - 10, FENCE_R - FENCE_L, FH + 10);
+    }
+
+    /* 2 ▸ worker with the power auger, around the loop */
+    var TWd = TW.digWork;
+    var digWA = ease(segw(t, [TWd[0], TWd[0] + 0.02])) * (1 - ease(segw(t, [TWd[1] - 0.015, TWd[1]])));
+    if (digWA > 0.01 && st.digP > 0 && st.digP < 1) {
+      var ah = clamp(Math.floor(st.digP * NP), 0, NP - 1);
+      var app = gp(PLIST[ah].gx, PLIST[ah].z);
+      var hxp = app[0], hgy = app[1], asc = app[2];
+      var spin = st.digP * 90;
+      ctx.strokeStyle = COL.steel; ctx.lineWidth = Math.max(1.6, 4 * asc); ctx.lineCap = 'butt';
+      ctx.beginPath(); ctx.moveTo(hxp, hgy - 50 * asc); ctx.lineTo(hxp, hgy + 3 * asc); ctx.stroke();
+      ctx.strokeStyle = '#565b61'; ctx.lineWidth = Math.max(1, 2 * asc);
+      for (k = 0; k < 5; k++) {
+        var fy2 = hgy - 40 * asc + (((k * 11 + spin) % 44)) * asc;
+        ctx.beginPath(); ctx.moveTo(hxp - 6 * asc, fy2 + 4 * asc); ctx.lineTo(hxp + 6 * asc, fy2); ctx.stroke();
+      }
+      ctx.fillStyle = ACCENT; ctx.fillRect(hxp - 10 * asc, hgy - 58 * asc, 20 * asc, 9 * asc);
+      ctx.strokeStyle = COL.hw; ctx.lineWidth = Math.max(1.2, 3 * asc);
+      ctx.beginPath(); ctx.moveTo(hxp - 10 * asc, hgy - 54 * asc); ctx.lineTo(hxp - 22 * asc, hgy - 56 * asc); ctx.stroke();
+      drawWorker(hxp - 26 * asc, hgy - 2 * asc, Math.sin(st.digP * 40) * 2, hxp - 12 * asc, hgy - 54 * asc, digWA, asc);
+    }
+
+    /* 6 ▸ worker hanging pickets, around the loop */
+    var TWp = TW.pickWork;
+    var pkWA = ease(segw(t, [TWp[0], TWp[0] + 0.02])) * (1 - ease(segw(t, [TWp[1] - 0.015, TWp[1]])));
+    if (pkWA > 0.01 && st.pickP > 0 && st.pickP < 1) {
+      var api = clamp(Math.floor(st.pickP * NPK), 0, NPK - 1);
+      var PB = pickets[api];
+      var wpt = bayPt(PB.b, PB.u1, 0);
+      var apx = wpt[0] + 16 * wpt[2], apy = wpt[1], psc = wpt[2];
+      drawWorker(apx, apy - 2 * psc, Math.sin(st.pickP * 60) * 3, apx - 10 * psc, apy - 70 * psc, pkWA, psc);
+      ctx.globalAlpha = pkWA;
+      ctx.fillStyle = COL.hw; ctx.fillRect(apx - 16 * psc, apy - 74 * psc, 9 * psc, 6 * psc);
+      ctx.fillStyle = ACCENT; ctx.fillRect(apx - 13 * psc, apy - 68 * psc, 3 * psc, 5 * psc);
+      ctx.globalAlpha = 1;
+    }
+
+    /* 5 ▸ material run: pickup truck + lumber stack (front lawn) */
+    var tx = lerp(-340, 40, truckIn) - truckOut * 420;
+    if (truckIn > 0 && tx > -330) {
+      var by = 344;
+      ctx.fillStyle = 'rgba(0,0,0,.2)';
+      ctx.beginPath(); ctx.ellipse(tx + 140, by + 2, 140, 10, 0, 0, 6.2832); ctx.fill();
+      ctx.fillStyle = '#3f444a'; ctx.fillRect(tx + 8, by - 44, 172, 28);
+      ctx.fillStyle = '#22262a'; ctx.fillRect(tx + 8, by - 18, 250, 8);
+      ctx.fillStyle = '#d5d8da'; ctx.fillRect(tx + 180, by - 64, 78, 48);
+      ctx.fillStyle = COL.glass; ctx.fillRect(tx + 196, by - 58, 40, 22);
+      ctx.fillStyle = ACCENT; ctx.fillRect(tx + 8, by - 22, 250, 5);
+      var wh = [tx + 52, tx + 218];
+      for (k = 0; k < wh.length; k++) {
+        ctx.fillStyle = '#1b1e21'; ctx.beginPath(); ctx.arc(wh[k], by - 6, 14, 0, 6.2832); ctx.fill();
+        ctx.fillStyle = '#54595e'; ctx.beginPath(); ctx.arc(wh[k], by - 6, 5.5, 0, 6.2832); ctx.fill();
+      }
+      if (unloadP < 1) {
+        ctx.globalAlpha = 1 - unloadP;
+        ctx.fillStyle = COL.picketRaw;
+        ctx.fillRect(tx + 2, by - 52, 168, 5);
+        ctx.fillRect(tx + 6, by - 58, 160, 5);
+        ctx.globalAlpha = 1;
+      }
+    }
+    var stackA = unloadP * (1 - ease(segw(t, [0.755, 0.78])));
+    if (stackA > 0.01) {
+      var rows = Math.ceil(4 * (1 - useP));
+      ctx.globalAlpha = stackA;
+      ctx.fillStyle = 'rgba(0,0,0,.16)';
+      ctx.beginPath(); ctx.ellipse(256, 424, 74, 6, 0, 0, 6.2832); ctx.fill();
+      for (k = 0; k < rows; k++) {
+        var ly = 418 - k * 7;
+        ctx.fillStyle = mixHex(COL.picketRaw, COL.picketRaw2, (k % 2) * .5);
+        ctx.fillRect(196, ly, 120 - k * 6, 6);
+        ctx.strokeStyle = 'rgba(60,40,20,.3)'; ctx.lineWidth = 1;
+        ctx.strokeRect(196, ly, 120 - k * 6, 6);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    /* dust motes at the active hole while boring (atmospheric) */
+    if (st.digP > 0 && st.digP < 1) {
+      var dpp = gp(PLIST[clamp(Math.floor(st.digP * NP), 0, NP - 1)].gx,
+                   PLIST[clamp(Math.floor(st.digP * NP), 0, NP - 1)].z);
+      for (k = 0; k < dust.length; k++) {
+        var d = dust[k];
+        var dxm = Math.sin(ms * 0.0005 + d.p) * 6 * dpp[2];
+        var dym = -(((ms * 0.012 * d.s) + d.p * 40) % 40) * dpp[2];
+        ctx.fillStyle = 'rgba(150,130,105,' + (0.22 * (0.5 + 0.5 * Math.sin(d.p + ms * 0.001))).toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(dpp[0] + d.dx * .5 * dpp[2] + dxm, dpp[1] - 6 * dpp[2] + d.dy * .5 * dpp[2] + dym, 1.5 * d.s * dpp[2], 0, 6.2832);
+        ctx.fill();
+      }
+    }
+
+    /* grade line over the cutaway */
+    ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-BLEED, GRADE); ctx.lineTo(W + BLEED, GRADE); ctx.stroke();
+
+    /* golden wash, haze, vignette (device space) */
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (g > 0.01) {
+      ctx.fillStyle = 'rgba(255,150,60,' + (0.09 * g).toFixed(3) + ')';
+      ctx.fillRect(0, 0, cw, ch);
+    }
+    var hz = fitOY + 206 * fitS;
+    var haze = ctx.createLinearGradient(0, hz - 26, 0, hz + 40);
+    haze.addColorStop(0, 'rgba(255,255,255,0)');
+    haze.addColorStop(.5, 'rgba(235,240,244,.07)');
+    haze.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = haze; ctx.fillRect(0, hz - 26, cw, 66);
+    var vg = ctx.createRadialGradient(cw / 2, ch * .46, Math.min(cw, ch) * .42, cw / 2, ch * .52, Math.max(cw, ch) * .78);
+    vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.30)');
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch);
+  }
+
+  /* ── HUD / controls ──────────────────────────────────────────── */
+  var S = CFG.STAGES, chips = [], checks = [];
+  for (i = 0; i < S.length; i++) {
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.textContent = String(i + 1);
+    btn.setAttribute('aria-label', 'Stage ' + S[i].num + ': ' + S[i].name);
+    (function (idx, bEl) {
+      bEl.addEventListener('click', function () { goTo(S[idx].t + 0.015); });
+      function showTip() {
+        tipEl.innerHTML = '<strong>' + S[idx].num + ' — ' + S[idx].name + '</strong><em>' + S[idx].tip + '</em>';
+        tipEl.style.left = (bEl.offsetLeft + bEl.offsetWidth / 2) + 'px';
+        tipEl.classList.add('on');
+      }
+      function hideTip() { tipEl.classList.remove('on'); }
+      bEl.addEventListener('mouseenter', showTip);
+      bEl.addEventListener('mouseleave', hideTip);
+      bEl.addEventListener('focus', showTip);
+      bEl.addEventListener('blur', hideTip);
+    })(i, btn);
+    chipsEl.appendChild(btn); chips.push(btn);
+
+    var row = document.createElement('div');
+    row.className = 'ck'; row.innerHTML = '<b>\u2713</b>' + S[i].name;
+    checkEl.appendChild(row); checks.push(row);
+  }
+
+  var stageIdx = -1;
+  function updateHUD(t) {
+    var idx = 0, n;
+    for (n = S.length - 1; n >= 0; n--) { if (t >= S[n].t) { idx = n; break; } }
+    if (idx !== stageIdx) {
+      stageIdx = idx;
+      elNum.textContent = S[idx].num;
+      elName.textContent = S[idx].name;
+    }
+    var pct = (t * 100);
+    elFill.style.width = pct.toFixed(2) + '%';
+    elThumb.style.left = pct.toFixed(2) + '%';
+    slider.setAttribute('aria-valuenow', String(Math.round(pct)));
+    slider.setAttribute('aria-valuetext', S[idx].name + ', ' + Math.round(pct) + '%');
+    elCue.style.opacity = t > 0.02 ? '0' : '1';
+    for (n = 0; n < S.length; n++) {
+      var end = n + 1 < S.length ? S[n + 1].t : 1;
+      var isDone = t >= end - 0.002, isAct = n === idx;
+      checks[n].className = 'ck' + (isDone ? ' done' : '') + (isAct ? ' active' : '');
+      chips[n].className = (isAct ? 'active' : (isDone ? 'done' : ''));
+    }
+  }
+
+  /* ── sizing / retina ─────────────────────────────────────────── */
+  function resize() {
+    var r = canvas.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.max(1, Math.round(r.width * dpr));
+    var h = Math.max(1, Math.round(r.height * dpr));
+    if (w !== canvas.width || h !== canvas.height) {
+      canvas.width = w; canvas.height = h;
+      var rs = clamp(Math.min(w / W, h / H), 0.5, 2.5);
+      if (Math.abs(rs - backdropScale) > 0.15 || !backdropScale) renderBackdrops(rs);
+    }
+  }
+  window.addEventListener('resize', resize, { passive: true });
+  window.addEventListener('orientationchange', resize, { passive: true });
+
+  /* ── reduced motion: one static, finished frame ──────────────── */
+  if (reduced) {
+    resize(); draw(1, 0); updateHUD(1);
+    window.addEventListener('resize', function () { resize(); draw(1, 0); }, { passive: true });
+    return;
+  }
+
+  /* ── timeline: scroll is the single source of truth ──────────── */
+  function room()     { return track.getBoundingClientRect().height - window.innerHeight; }
+  function trackTop() { return track.getBoundingClientRect().top + window.scrollY; }
+  function scrollTarget() {
+    var rect = track.getBoundingClientRect();
+    var rm = rect.height - window.innerHeight;
+    if (rm <= 0) return 0;
+    return clamp(-rect.top / rm, 0, 1);
+  }
+  function goTo(t, instant) {
+    var top = trackTop() + clamp(t, 0, 1) * Math.max(1, room());
+    if (instant) window.scrollTo(0, top);
+    else window.scrollTo({ top: top, behavior: 'smooth' });
+  }
+
+  var dragging = false;
+  function dragTo(clientX) {
+    var r = slider.getBoundingClientRect();
+    goTo(clamp((clientX - r.left) / r.width, 0, 1), true);
+  }
+  slider.addEventListener('pointerdown', function (e) {
+    dragging = true; slider.setPointerCapture(e.pointerId); dragTo(e.clientX); e.preventDefault();
+  });
+  slider.addEventListener('pointermove', function (e) { if (dragging) dragTo(e.clientX); });
+  slider.addEventListener('pointerup',   function () { dragging = false; });
+  slider.addEventListener('pointercancel', function () { dragging = false; });
+  slider.addEventListener('keydown', function (e) {
+    var t = scrollTarget(), step = 0.02, big = 0.125, used = true;
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowUp':   goTo(t + step, true); break;
+      case 'ArrowLeft':  case 'ArrowDown': goTo(t - step, true); break;
+      case 'PageUp':   goTo(t + big, true); break;
+      case 'PageDown': goTo(t - big, true); break;
+      case 'Home': goTo(0, true); break;
+      case 'End':  goTo(1, true); break;
+      default: used = false;
+    }
+    if (used) e.preventDefault();
+  });
+
+  var tParX = 0, tParY = 0;
+  if (finePtr) {
+    stageEl.addEventListener('mousemove', function (e) {
+      var r = stageEl.getBoundingClientRect();
+      tParX = ((e.clientX - r.left) / r.width - 0.5) * 2;
+      tParY = ((e.clientY - r.top) / r.height - 0.5) * 2;
+    });
+    stageEl.addEventListener('mouseleave', function () { tParX = 0; tParY = 0; });
+  }
+
+  var shown = 0;
+  function tick(ms) {
+    var target = scrollTarget();
+    var d = target - shown;
+    if (Math.abs(d) > 0.0004) shown += d * CFG.EASE_K;
+    else shown = target;
+    parX += (tParX - parX) * 0.06;
+    parY += (tParY - parY) * 0.06;
+    resize();
+    draw(shown, ms);
+    updateHUD(shown);
+    requestAnimationFrame(tick);
+  }
+  resize();
+  requestAnimationFrame(tick);
+})();
+</script>
+</div>
+</div>
+
 
 <!-- CTA BAND -->
 <div class="cta-band">

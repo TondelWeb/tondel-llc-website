@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" width="900" height="1200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#20232c"/>
+      <stop offset="1" stop-color="#14161c"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="1200" fill="url(#bg)"/>
+  <rect x="24" y="24" width="852" height="1152" fill="none" stroke="#30343f" stroke-width="2"/>
+  <text x="450" y="560" font-family="Arial, sans-serif" font-size="54" font-weight="700" letter-spacing="6" fill="#FF6A1A" text-anchor="middle">AFTER</text>
+  <text x="450" y="630" font-family="Arial, sans-serif" font-size="24" letter-spacing="2" fill="#9AA1AE" text-anchor="middle">Driveway — replace with your photo</text>
+</svg>
