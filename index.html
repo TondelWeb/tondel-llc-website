@@ -761,8 +761,9 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── card: HORIZONTAL — photo pane left (kept at its true aspect,
-         so nothing is cropped/stretched), title + controls on the right ── */
+    /* ── card: HORIZONTAL — photo pane left, controls right. All cards
+         share ONE fixed height so every box in the grid is the same size;
+         photos letterbox on the dark pane instead of cropping/stretching ── */
     #tondel-slider .ts-card {
       background: var(--card);
       border: 1px solid var(--card-edge);
@@ -770,6 +771,7 @@
       overflow: hidden;
       display: flex;
       flex-direction: row;
+      height: clamp(340px, 36vw, 480px);   /* ← uniform card size */
       box-shadow: 0 10px 30px rgba(0,0,0,.35);
     }
     #tondel-slider .ts-body {
@@ -780,11 +782,20 @@
     }
     #tondel-slider .ts-body .ts-foot { margin-top: auto; }
 
-    /* below ~900px: stack back to one column + vertical cards */
+    /* below ~900px: STILL 2 side-by-side, but each card goes vertical
+       (photo on top) so they fit the narrower columns */
     @media (max-width: 900px) {
+      #tondel-slider { gap: 16px; }
+      #tondel-slider .ts-card { flex-direction: column; height: auto; }
+      #tondel-slider .ts-viewport {
+        width: 100%;
+        height: auto;
+        aspect-ratio: var(--ts-aspect, 3/2);
+      }
+    }
+    /* only on small phones: drop to a single column */
+    @media (max-width: 520px) {
       #tondel-slider { grid-template-columns: 1fr; }
-      #tondel-slider .ts-card { flex-direction: column; }
-      #tondel-slider .ts-viewport { width: 100% !important; }
     }
 
     #tondel-slider .ts-head {
@@ -816,22 +827,22 @@
       white-space: nowrap;
     }
 
-    /* ── photo viewport (aspect set per-project inline) ─────────────── */
+    /* ── photo viewport (aspect set per-project inline) ───────────────── */
     #tondel-slider .ts-viewport {
       position: relative;
       flex: none;
       width: 56%;                       /* photo pane = left half-ish of card */
+      height: 100%;                     /* fills the uniform card height */
       overflow: hidden;
-      background: #12141a;              /* fills while images load */
-      /* aspect-ratio is set per project from the JOBS data, so the box
-         matches the photos' own proportions — no shrink, no stretch */
+      background: #12141a;              /* letterbox fill while/after loading */
     }
     #tondel-slider .ts-viewport img {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;              /* full photo visible — never cropped
+                                           or stretched, pads on dark bg */
       opacity: 0;
       will-change: opacity, transform;
       transform: scale(1.06);
@@ -854,11 +865,11 @@
       pointer-events: none;
     }
 
-    /* ── footer: caption, chips, slider ─────────────────────────────── */
+    /* ── footer: caption, chips, slider ─────────────────────────────────── */
     #tondel-slider .ts-foot { padding: 14px 18px 20px; }
 
     #tondel-slider .ts-caption {
-      min-height: 2.4em;               /* reserve space → no layout shift */
+      min-height: 2.4em;               /* reserve space — no layout shift */
       margin: 0 0 12px;
       font-size: 11px;
       font-weight: 500;
@@ -902,7 +913,7 @@
       outline-offset: 3px;
     }
 
-    /* ── the tactile slider ─────────────────────────────────────────── */
+    /* ── the tactile slider ───────────────────────────────────────────── */
     #tondel-slider .ts-range {
       position: relative;
       height: 40px;                     /* generous touch target */
@@ -964,7 +975,7 @@
   (function () {
     'use strict';
 
-    /* ══ EDIT ME: your projects. Copy a block to add one. ══════════════
+    /* ── EDIT ME: your projects. Copy a block to add one. ────────────────
        aspect  = viewport ratio, "w/h" (portrait "3/4", landscape "3/2")
        stages  = 2 or 3 entries, in order (Before[, During], After)      */
     var JOBS = [
@@ -1050,7 +1061,7 @@
       /* viewport */
       var vp = document.createElement('div');
       vp.className = 'ts-viewport';
-      vp.style.aspectRatio = job.aspect;   // per-project ratio → no CLS
+      vp.style.setProperty('--ts-aspect', job.aspect); // used in mobile layout
 
       var imgs = job.stages.map(function (st, i) {
         var img = document.createElement('img');
@@ -1133,7 +1144,7 @@
       card.appendChild(body);   // title + controls right
       root.appendChild(card);
 
-      /* ── state & rendering ─────────────────────────────────────── */
+      /* ── state & rendering ────────────────────────────────────────── */
       var pos = 0;            // continuous position, 0 .. max
       var rafId = null;
 
@@ -1179,7 +1190,7 @@
         })(t0);
       }
 
-      /* ── dragging (pointer events = mouse + touch + pen) ──────────── */
+      /* ── dragging (pointer events = mouse + touch + pen) ──────────────── */
       var dragging = false;
 
       function posFromEvent(e) {
@@ -1214,7 +1225,7 @@
       range.addEventListener('pointercancel', endDrag);
       range.addEventListener('lostpointercapture', endDrag);
 
-      /* ── keyboard ──────────────────────────────────────────────── */
+      /* ── keyboard ────────────────────────────────────────────────────── */
       range.addEventListener('keydown', function (e) {
         var idx = clamp(Math.round(pos), 0, max);
         var next = null;
